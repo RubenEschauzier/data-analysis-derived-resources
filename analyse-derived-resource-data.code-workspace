@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../../query-derived-resources/comunica-feature-link-traversal-adaptive-derived-resources"
+		},
+		{
+			"path": "../../query-derived-resources/comunica-adaptive-derived-resources"
+		},
+		{
+			"path": "../../query-derived-resources/derived-resources-component-solidbench"
+		}
+	],
+	"settings": {}
+}
