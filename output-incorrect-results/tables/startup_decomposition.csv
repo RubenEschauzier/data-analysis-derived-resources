@@ -1,0 +1,12 @@
+template,instances_used,to_first_result::default,after_first_result::default,to_first_result::adaptive,after_first_result::adaptive,to_first_result::adaptive-derived-resources,after_first_result::adaptive-derived-resources,to_first_result::adaptive-derived-resources-no-chain,after_first_result::adaptive-derived-resources-no-chain,to_first_result::adaptive-derived-resources-pattern-only,after_first_result::adaptive-derived-resources-pattern-only,startup_delta_ms::adaptive,after_first_ratio::adaptive,startup_delta_ms::adaptive-derived-resources,after_first_ratio::adaptive-derived-resources,startup_delta_ms::adaptive-derived-resources-no-chain,after_first_ratio::adaptive-derived-resources-no-chain,startup_delta_ms::adaptive-derived-resources-pattern-only,after_first_ratio::adaptive-derived-resources-pattern-only
+interactive-discover-1,5,543.5,1231.0,507.5,1340.5,1092.0,226.5,1119.0,222.0,1005.0,333.0,-36.0,1.09,548.5,0.18,575.5,0.18,461.5,0.27
+interactive-discover-2,5,726.5,1144.5,439.0,1213.5,1082.5,293.0,1054.5,278.5,1005.0,294.0,-287.5,1.06,356.0,0.26,328.0,0.24,278.5,0.26
+interactive-discover-3,5,98594.5,2.5,98254.0,3.5,96775.0,4.5,97449.0,3.0,99194.5,4.0,-340.5,1.4,-1819.5,1.8,-1145.5,1.2,600.0,1.6
+interactive-discover-4,5,1545.5,0.0,1669.5,1.0,1295.5,1.0,1320.0,1.0,1297.0,1.0,124.0,,-250.0,,-225.5,,-248.5,
+interactive-discover-5,5,538.5,629.0,553.0,941.5,819.5,312.0,824.0,302.0,825.0,274.0,14.5,1.5,281.0,0.5,285.5,0.48,286.5,0.44
+interactive-discover-6,4,2264.0,286.0,1299.0,628.0,1107.0,114.0,1091.0,114.0,1049.5,251.0,-965.0,2.2,-1157.0,0.4,-1173.0,0.4,-1214.5,0.88
+interactive-discover-7,3,2646.5,96.0,1775.0,441.0,2377.5,127.5,1996.0,117.0,1861.5,119.5,-871.5,4.59,-269.0,1.33,-650.5,1.22,-785.0,1.24
+interactive-discover-8,5,6322.0,6071.0,758.0,288.0,1306.5,47.5,1257.0,56.0,1164.5,17.5,-5564.0,0.05,-5015.5,0.01,-5065.0,0.01,-5157.5,0.0
+interactive-short-1,5,337.5,942.0,330.5,1331.5,1700.5,117.0,1719.0,120.5,1600.5,120.5,-7.0,1.41,1363.0,0.12,1381.5,0.13,1263.0,0.13
+interactive-short-4,5,126.0,116.5,130.5,114.5,192.0,473.5,198.0,385.5,237.0,468.5,4.5,0.98,66.0,4.06,72.0,3.31,111.0,4.02
+interactive-short-5,5,364.0,5285.0,363.5,5822.0,1202.5,245.5,1206.0,295.5,1107.5,202.0,-0.5,1.1,838.5,0.05,842.0,0.06,743.5,0.04

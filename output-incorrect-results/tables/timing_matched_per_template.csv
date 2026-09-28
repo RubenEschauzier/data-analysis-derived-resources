@@ -1,0 +1,16 @@
+template,instances_used,instances_total,median::default,median::adaptive,median::adaptive-derived-resources,median::adaptive-derived-resources-no-chain,median::adaptive-derived-resources-pattern-only,vs_default::adaptive,vs_default::adaptive-derived-resources,vs_default::adaptive-derived-resources-no-chain,vs_default::adaptive-derived-resources-pattern-only
+interactive-discover-1,5,5,1730.5,1801.0,1654.0,1531.0,1504.5,1.04,0.96,0.88,0.87
+interactive-discover-2,5,5,1794.0,1674.5,1360.5,1314.5,1271.5,0.93,0.76,0.73,0.71
+interactive-discover-3,5,5,98597.0,98258.0,96781.5,97451.5,99197.0,1.0,0.98,0.99,1.01
+interactive-discover-4,5,5,1546.0,1670.5,1296.5,1321.5,1298.0,1.08,0.84,0.85,0.84
+interactive-discover-5,5,5,1151.0,1489.0,1106.0,1126.5,1063.0,1.29,0.96,0.98,0.92
+interactive-discover-6,4,5,2669.0,1959.5,1212.0,1199.0,1434.5,0.73,0.45,0.45,0.54
+interactive-discover-7,3,5,2679.0,2549.5,2826.5,2425.0,1988.0,0.95,1.06,0.91,0.74
+interactive-discover-8,5,5,20866.0,1971.0,1459.0,1373.0,1173.5,0.09,0.07,0.07,0.06
+interactive-short-1,5,5,1293.5,1646.5,1886.0,1896.0,1722.5,1.27,1.46,1.47,1.33
+interactive-short-2,0,5,,,,,,,,,
+interactive-short-3,0,5,,,,,,,,,
+interactive-short-4,5,5,234.5,242.5,677.0,573.5,769.5,1.03,2.89,2.45,3.28
+interactive-short-5,5,5,5625.0,6147.5,1476.5,1613.0,1451.0,1.09,0.26,0.29,0.26
+interactive-short-6,0,5,,,,,,,,,
+interactive-short-7,0,5,,,,,,,,,

@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import argparse
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
-from analysis.config import FIGURE_DIR, OUTPUT_DIR, TABLE_DIR
+from analysis.config import DATA_DIR, OUTPUT_DIR
 from analysis.completion import (completion_summary, matched_timing, par_scores,
                                  progress_summary, startup_decomposition)
 from analysis.correctness import per_query_agreement, per_template_agreement, to_markdown
@@ -16,40 +17,50 @@ from analysis.performance import METRICS, error_summary, per_template_performanc
 from analysis.plots import plot_all
 
 
-def _write(table, name: str) -> None:
-    TABLE_DIR.mkdir(parents=True, exist_ok=True)
-    table.to_csv(TABLE_DIR / f"{name}.csv", index=False)
-    (TABLE_DIR / f"{name}.md").write_text(to_markdown(table) + "\n")
+def _write(table, name: str, table_dir: Path) -> None:
+    table_dir.mkdir(parents=True, exist_ok=True)
+    table.to_csv(table_dir / f"{name}.csv", index=False)
+    (table_dir / f"{name}.md").write_text(to_markdown(table) + "\n")
 
 
 def main() -> None:
-    df = load_runs()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--data-dir", type=Path, default=DATA_DIR,
+                        help="directory of query-results-raw-<engine>.json files")
+    parser.add_argument("--out-dir", type=Path, default=OUTPUT_DIR,
+                        help="directory to write tables, figures and the report into")
+    args = parser.parse_args()
+
+    data_dir, out_dir = args.data_dir, args.out_dir
+    table_dir, figure_dir = out_dir / "tables", out_dir / "figures"
+
+    df = load_runs(data_dir)
     engines = engine_order(df)
-    print(f"loaded {len(df)} runs from {len(discover_datasets())} engines: {', '.join(engines)}")
+    print(f"loaded {len(df)} runs from {len(discover_datasets(data_dir))} engines: {', '.join(engines)}")
 
     per_query = per_query_agreement(df)
     per_template = per_template_agreement(per_query, df)
     errors = error_summary(df)
 
-    _write(df.drop(columns=["timestamps"]), "runs")
-    _write(per_query, "agreement_per_query")
-    _write(per_template, "agreement_per_template")
-    _write(errors, "errors")
+    _write(df.drop(columns=["timestamps"]), "runs", table_dir)
+    _write(per_query, "agreement_per_query", table_dir)
+    _write(per_template, "agreement_per_template", table_dir)
+    _write(errors, "errors", table_dir)
     for metric in METRICS:
-        _write(per_template_performance(df, metric), f"performance_per_template_{metric}")
+        _write(per_template_performance(df, metric), f"performance_per_template_{metric}", table_dir)
 
     completion = completion_summary(df)
     matched = matched_timing(df)
     par = par_scores(df)
     progress = progress_summary(df)
-    _write(completion, "completion_per_template")
-    _write(matched, "timing_matched_per_template")
-    _write(par, "par2_per_template")
-    _write(progress, "progress_and_throughput_per_template")
+    _write(completion, "completion_per_template", table_dir)
+    _write(matched, "timing_matched_per_template", table_dir)
+    _write(par, "par2_per_template", table_dir)
+    _write(progress, "progress_and_throughput_per_template", table_dir)
     startup = startup_decomposition(df)
-    _write(startup, "startup_decomposition")
+    _write(startup, "startup_decomposition", table_dir)
 
-    figures = plot_all(df)
+    figures = plot_all(df, figure_dir)
 
     mismatches = per_query[per_query["status"] == "MISMATCH"]
     report = [
@@ -114,14 +125,15 @@ def main() -> None:
         "",
         "## Figures",
         "",
-        *[f"- `{p.relative_to(OUTPUT_DIR.parent)}`" for p in figures],
+        *[f"- `{p.relative_to(out_dir.parent)}`" for p in figures],
         "",
     ]
-    (OUTPUT_DIR / "report.md").write_text("\n".join(report))
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "report.md").write_text("\n".join(report))
 
-    print(f"tables  -> {TABLE_DIR}")
-    print(f"figures -> {FIGURE_DIR}")
-    print(f"report  -> {OUTPUT_DIR / 'report.md'}")
+    print(f"tables  -> {table_dir}")
+    print(f"figures -> {figure_dir}")
+    print(f"report  -> {out_dir / 'report.md'}")
     print(f"\n{len(mismatches)} of {len(per_query)} query instances disagree between engines.")
 
 

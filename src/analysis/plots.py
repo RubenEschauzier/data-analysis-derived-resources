@@ -18,7 +18,8 @@ import pandas as pd
 
 import numpy as np
 
-from .config import FIGURE_DIR, OUTCOME_STATUS, STATUS, THEMES, series_color
+from .config import (FIGURE_DIR, OUTCOME_STATUS, STATUS, THEMES, series_color,
+                     series_dash)
 from .loading import engine_order, template_order
 
 METRICS = {
@@ -101,8 +102,13 @@ def plot_metric_by_template(
     ax.set_ylim(len(templates) - 0.5, -0.5)
 
     ax.set_xlabel(xlabel, color=palette["text_secondary"], fontsize=9)
-    ax.set_title(f"{title} per query template",
-                 color=palette["text_primary"], fontsize=12, pad=22, loc="left")
+    # The legend sits in its own band under the title, wrapped to at most three
+    # columns: five configuration names on one row are wider than the figure, which
+    # clipped the first entry and ran the rest into the title.
+    legend_columns = min(len(engines), 3)
+    legend_rows = -(-len(engines) // legend_columns)
+    ax.set_title(f"{title} per query template", color=palette["text_primary"],
+                 fontsize=12, pad=20 + 14 * legend_rows, loc="left")
 
     ax.grid(axis="x", color=palette["grid"], linewidth=0.8, zorder=0)
     ax.set_axisbelow(True)
@@ -111,8 +117,8 @@ def plot_metric_by_template(
     ax.spines["bottom"].set_color(palette["grid"])
     ax.tick_params(colors=palette["text_secondary"], length=0)
 
-    legend = ax.legend(loc="lower right", bbox_to_anchor=(1, 1.01), frameon=False,
-                       fontsize=9, ncol=len(engines), handletextpad=0.4,
+    legend = ax.legend(loc="lower left", bbox_to_anchor=(0, 1.01), frameon=False,
+                       fontsize=9, ncol=legend_columns, handletextpad=0.4,
                        columnspacing=1.6)
     for text in legend.get_texts():
         text.set_color(palette["text_secondary"])
@@ -154,8 +160,14 @@ def plot_completion(df: pd.DataFrame, theme: str = "light",
     templates = template_order(df)
     kinds = ["ok", "timeout", "crash", "unsupported"]
 
-    height = 0.34 * len(templates) * len(engines) + 2.2
-    fig, ax = plt.subplots(figsize=(9.2, height), facecolor=palette["surface"])
+    # One row per template per engine. The pitch tightens once there are many rows so
+    # the figure stays a readable page rather than a strip metres long; with two or
+    # three engines it is unchanged.
+    total_rows = len(templates) * len(engines)
+    row_height = min(0.34, 14.0 / total_rows)
+    label_size = 8 if row_height > 0.24 else 6.5
+    fig, ax = plt.subplots(figsize=(9.2, row_height * total_rows + 2.2),
+                           facecolor=palette["surface"])
 
     labels, positions, row = [], [], 0.0
     for template in templates:
@@ -166,12 +178,12 @@ def plot_completion(df: pd.DataFrame, theme: str = "light",
                 width = int((runs["failure_kind"] == kind).sum())
                 if not width:
                     continue
-                ax.barh(row, width, left=left, height=0.72, color=OUTCOME_STATUS[kind],
+                ax.barh(row, width, left=left, height=0.78, color=OUTCOME_STATUS[kind],
                         edgecolor=palette["surface"], linewidth=1.5, zorder=2)
                 if width >= 4:
                     # Label inside the segment: status colour never stands alone.
                     ax.text(left + width / 2, row, str(width), ha="center", va="center",
-                            fontsize=7.5, color="#ffffff", zorder=3)
+                            fontsize=min(7.5, label_size + 0.5), color="#ffffff", zorder=3)
                 left += width
             labels.append(f"{template.replace('interactive-', '')}  ·  {engine}")
             positions.append(row)
@@ -179,7 +191,7 @@ def plot_completion(df: pd.DataFrame, theme: str = "light",
         row += 0.5
 
     ax.set_yticks(positions)
-    ax.set_yticklabels(labels, color=palette["text_secondary"], fontsize=8)
+    ax.set_yticklabels(labels, color=palette["text_secondary"], fontsize=label_size)
     ax.invert_yaxis()
     ax.set_xlabel("runs", color=palette["text_secondary"], fontsize=9)
     ax.set_title("How each run ended, per template and engine",
@@ -232,8 +244,13 @@ def plot_arrival_curves(df: pd.DataFrame, theme: str = "light",
     """
     palette = THEMES[theme]
     engines = engine_order(df)
-    if len(engines) > 3:
-        raise ValueError("small multiples cap at 3 series; facet by engine instead")
+    # Lines are an adjacent form, and the palette clears its gates on that pairlist for
+    # all eight slots. Beyond three a reader may still compare two non-adjacent lines,
+    # where hue alone is not enough, so each series also carries its own dash pattern.
+    if len(engines) > len(THEMES[theme]["series"]):
+        raise ValueError(
+            f"{len(engines)} series requested but only {len(THEMES[theme]['series'])} "
+            "categorical slots exist; facet rather than cycling hues")
     templates = template_order(df)
     grid = np.logspace(1, np.log10(df["time_ms"].max()), 250)
 
@@ -247,8 +264,8 @@ def plot_arrival_curves(df: pd.DataFrame, theme: str = "light",
         for slot, engine in enumerate(engines):
             runs = df[(df["template"] == template) & (df["engine"] == engine)]
             ax.plot(grid, _delivery_curve(runs, grid), color=series_color(theme, slot),
-                    linewidth=2, solid_joinstyle="round",
-                    label=engine if index == 0 else None, zorder=2)
+                    linewidth=1.8, linestyle=series_dash(slot), solid_joinstyle="round",
+                    dash_capstyle="round", label=engine if index == 0 else None, zorder=2)
         ax.set_xscale("log")
         ax.set_ylim(bottom=0)
         if ax.get_ylim()[1] < 1:
@@ -264,10 +281,13 @@ def plot_arrival_curves(df: pd.DataFrame, theme: str = "light",
         axes[index // cols][index % cols].set_visible(False)
 
     fig.suptitle("Results delivered over elapsed time (mean across all runs)",
-                 color=palette["text_primary"], fontsize=12, x=0.012, ha="left", y=0.995)
+                 color=palette["text_primary"], fontsize=12, x=0.012, ha="left", y=0.998)
     handles, labels = axes[0][0].get_legend_handles_labels()
-    legend = fig.legend(handles, labels, loc="upper right", bbox_to_anchor=(0.995, 1.0),
-                        frameon=False, fontsize=9, ncol=len(engines))
+    # Its own band under the title: with five configuration names a single row spans
+    # the figure and would run into the title.
+    legend = fig.legend(handles, labels, loc="upper left", bbox_to_anchor=(0.012, 0.978),
+                        frameon=False, fontsize=9, ncol=min(len(engines), 3),
+                        handlelength=2.6, columnspacing=1.8)
     for text in legend.get_texts():
         text.set_color(palette["text_secondary"])
 
@@ -276,7 +296,7 @@ def plot_arrival_curves(df: pd.DataFrame, theme: str = "light",
     fig.supylabel("results delivered", color=palette["text_secondary"], fontsize=9)
     fig.text(0.012, 0.002, "partial output from timed-out runs is included",
              fontsize=8, color=palette["text_muted"])
-    fig.tight_layout(rect=(0.012, 0.022, 1, 0.975))
+    fig.tight_layout(rect=(0.012, 0.022, 1, 0.995 - 0.022 * (1 + (len(engines) - 1) // 3)))
 
     out_dir.mkdir(parents=True, exist_ok=True)
     path = out_dir / f"result-arrival-curves-{theme}.png"

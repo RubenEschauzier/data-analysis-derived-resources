@@ -54,6 +54,33 @@ OUTCOME_STATUS = {
     "unsupported": STATUS["serious"],
 }
 
+# Dash patterns paired with the categorical slots, in the same fixed order.
+#
+# The palette clears its gates on the adjacent pairlist, which is the one lines are
+# read on, but not on all pairs: with five series on screen a reader may compare any
+# two, and `#e87ba4` vs `#eb6834` measures 12.9 normal-vision (below the 15 floor),
+# `#d55181` vs `#199e70` 1.6 under deutan on the dark surface. Dash carries the
+# identity that hue cannot at that distance, so the series stay separable without
+# colour - which also covers print and forced-colours.
+SERIES_DASHES = [
+    (0, ()),
+    (0, (5, 2)),
+    (0, (1, 1.6)),
+    (0, (7, 2, 1.5, 2)),
+    (0, (2.5, 1.6)),
+    (0, (5, 2, 1.5, 2, 1.5, 2)),
+    (0, (9, 3)),
+    (0, (1.5, 1.2, 4, 1.2)),
+]
+
+
+def series_dash(index: int):
+    """Dash pattern for a categorical slot, paired one-to-one with `series_color`."""
+    if index >= len(SERIES_DASHES):
+        raise ValueError(f"no dash pattern for series {index + 1}")
+    return SERIES_DASHES[index]
+
+
 THEMES = {
     "light": {
         "surface": "#fcfcfb",
