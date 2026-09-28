@@ -1,8 +1,22 @@
 """Per-template comparison figures, one series per engine.
 
-Execution time spans three orders of magnitude across the templates, so the
-magnitude comparison is a dot-and-range plot on a log axis rather than bars: a
-bar needs a zero baseline, which a log axis does not have.
+Bars, vertically, in two layouts -- pick with `layout`:
+
+- `facets`  one small-multiple panel per template, each on its own *linear*
+  axis. This is the honest bar chart: a bar encodes magnitude as length from
+  zero, and per-panel scaling is what makes that possible when the workload
+  spans 200ms to 180s. The cost is that magnitudes cannot be compared across
+  panels by eye -- read the axis, not the bar.
+- `single`  every template on one shared *log* axis. Comparable at a glance and
+  compact, but bar length is no longer proportional to the value: on a log axis
+  the baseline is arbitrary, so the bars are a positional encoding wearing a
+  bar's clothes. The figure says so on its face.
+
+Both draw the same numbers: the two-stage aggregate from `aggregate.py` (median
+over replications, then geometric mean over instances), with the whisker
+spanning the slowest and fastest *instance* rather than a quantile over runs --
+on several templates that spread is two orders of magnitude and is the most
+important thing on the chart.
 """
 
 from __future__ import annotations
@@ -14,123 +28,43 @@ import matplotlib
 matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
-import numpy as np
-
+from .aggregate import per_instance, two_stage
 from .config import FIGURE_DIR, OUTCOME_STATUS, STATUS, THEMES, series_color
+from .heterogeneity import variance_decomposition
 from .loading import engine_order, template_order
 
 METRICS = {
-    "time_ms": ("Query execution time", "milliseconds (log scale)", True),
-    "http_requests": ("HTTP requests issued", "requests (log scale)", True),
-    "first_result_ms": ("Time to first result", "milliseconds (log scale)", True),
-    "throughput_per_s": ("Result throughput", "results per second (log scale)", True),
+    "time_ms": ("Query execution time", "milliseconds"),
+    "http_requests": ("HTTP requests issued", "requests"),
+    "first_result_ms": ("Time to first result", "milliseconds"),
+    "last_result_ms": ("Time to last result", "milliseconds"),
+    "throughput_per_s": ("Result throughput", "results per second"),
 }
 
-# Vertical offset between engine series inside one template row.
-_ROW_PITCH = 0.62
+LAYOUTS = ("facets", "single")
 
 
-def _summarise(df: pd.DataFrame, metric: str) -> pd.DataFrame:
-    """Median and interquartile range per (template, engine), successful runs only."""
-    ok = df[~df["failed"]].dropna(subset=[metric])
-    grouped = ok.groupby(["template", "engine"])[metric]
-    return grouped.agg(
-        median="median",
-        low=lambda s: s.quantile(0.25),
-        high=lambda s: s.quantile(0.75),
-        n="size",
-    ).reset_index()
+def _short(template: str) -> str:
+    return template.replace("interactive-", "")
 
 
-def plot_metric_by_template(
-    df: pd.DataFrame,
-    metric: str,
-    theme: str = "light",
-    out_dir: Path = FIGURE_DIR,
-) -> Path:
-    """Dot = median across replications and instances; bar = interquartile range."""
-    title, xlabel, log_scale = METRICS[metric]
-    palette = THEMES[theme]
-    engines = engine_order(df)
-    templates = template_order(df)
-    stats = _summarise(df, metric)
-
-    height = 0.44 * len(templates) + 1.9
-    fig, ax = plt.subplots(figsize=(9.2, height), facecolor=palette["surface"])
-    ax.set_facecolor(palette["surface"])
-
-    offsets = [(i - (len(engines) - 1) / 2) * (_ROW_PITCH / max(len(engines), 2))
-               for i in range(len(engines))]
-
-    for slot, engine in enumerate(engines):
-        color = series_color(theme, slot)
-        for row_index, template in enumerate(templates):
-            cell = stats[(stats["template"] == template) & (stats["engine"] == engine)]
-            if cell.empty:
-                continue
-            cell = cell.iloc[0]
-            y = row_index + offsets[slot]
-            # 2px range line, then the median marker with a surface ring so
-            # overlapping engines stay separable.
-            ax.plot([cell["low"], cell["high"]], [y, y], color=color, linewidth=2,
-                    solid_capstyle="round", zorder=2)
-            ax.plot([cell["median"]], [y], marker="o", markersize=8, color=color,
-                    markeredgecolor=palette["surface"], markeredgewidth=1.5,
-                    linestyle="none", zorder=3,
-                    label=engine if row_index == 0 else None)
-            if row_index == 0 and len(engines) <= 4:
-                # Direct label on the first row: identity is never colour alone.
-                ax.annotate(engine, (cell["high"], y), textcoords="offset points",
-                            xytext=(8, 0), va="center", fontsize=8.5, color=color)
-
-    # Templates where nothing completed get a note rather than a silent gap.
-    for row_index, template in enumerate(templates):
-        if stats[stats["template"] == template].empty:
-            ax.text(0.01, row_index, "no successful runs", transform=ax.get_yaxis_transform(),
-                    va="center", ha="left", fontsize=8, style="italic",
-                    color=palette["text_muted"])
-
-    if log_scale:
-        ax.set_xscale("log")
-    ax.set_yticks(range(len(templates)))
-    ax.set_yticklabels([t.replace("interactive-", "") for t in templates],
-                       color=palette["text_secondary"], fontsize=9)
-    ax.invert_yaxis()
-    ax.set_ylim(len(templates) - 0.5, -0.5)
-
-    ax.set_xlabel(xlabel, color=palette["text_secondary"], fontsize=9)
-    ax.set_title(f"{title} per query template",
-                 color=palette["text_primary"], fontsize=12, pad=22, loc="left")
-
-    ax.grid(axis="x", color=palette["grid"], linewidth=0.8, zorder=0)
-    ax.set_axisbelow(True)
-    for side in ("top", "right", "left"):
-        ax.spines[side].set_visible(False)
-    ax.spines["bottom"].set_color(palette["grid"])
-    ax.tick_params(colors=palette["text_secondary"], length=0)
-
-    legend = ax.legend(loc="lower right", bbox_to_anchor=(1, 1.01), frameon=False,
-                       fontsize=9, ncol=len(engines), handletextpad=0.4,
-                       columnspacing=1.6)
-    for text in legend.get_texts():
-        text.set_color(palette["text_secondary"])
-
-    fig.text(0.008, 0.008,
-             "dot = median, bar = interquartile range; errored runs excluded",
-             fontsize=8, color=palette["text_muted"])
-    fig.tight_layout(rect=(0, 0.03, 1, 1))
-
-    out_dir.mkdir(parents=True, exist_ok=True)
-    path = out_dir / f"{metric}-by-template-{theme}.png"
-    fig.savefig(path, dpi=200, facecolor=palette["surface"])
-    fig.savefig(path.with_suffix(".pdf"), facecolor=palette["surface"])
-    plt.close(fig)
-    return path
+def _fmt(value: float) -> str:
+    """Compact bar label: 1.8k rather than 1834.2."""
+    if not np.isfinite(value):
+        return "-"
+    if value >= 10_000:
+        return f"{value / 1000:.0f}k"
+    if value >= 1000:
+        return f"{value / 1000:.1f}k"
+    if value >= 10:
+        return f"{value:.0f}"
+    return f"{value:.2g}"
 
 
-def _style_axes(ax, palette, grid_axis: str = "x") -> None:
+def _style_axes(ax, palette, grid_axis: str = "y") -> None:
     ax.set_facecolor(palette["surface"])
     ax.grid(axis=grid_axis, color=palette["grid"], linewidth=0.8, zorder=0)
     ax.set_axisbelow(True)
@@ -141,9 +75,304 @@ def _style_axes(ax, palette, grid_axis: str = "x") -> None:
     ax.tick_params(colors=palette["text_secondary"], length=0)
 
 
+def _engine_legend(fig_or_ax, engines, theme, palette, **kwargs):
+    handles = [plt.Line2D([], [], marker="s", linestyle="none", markersize=9,
+                          color=series_color(theme, slot), label=engine)
+               for slot, engine in enumerate(engines)]
+    legend = fig_or_ax.legend(handles=handles, frameon=False, fontsize=9,
+                              ncol=len(engines), handletextpad=0.4,
+                              columnspacing=1.6, **kwargs)
+    for text in legend.get_texts():
+        text.set_color(palette["text_secondary"])
+    return legend
+
+
+def _save(fig, palette, out_dir: Path, name: str) -> Path:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    path = out_dir / f"{name}.png"
+    fig.savefig(path, dpi=200, facecolor=palette["surface"])
+    fig.savefig(path.with_suffix(".pdf"), facecolor=palette["surface"])
+    plt.close(fig)
+    return path
+
+
+def _facet_grid(n_panels: int, palette, cols: int = 3, panel_height: float = 2.45):
+    rows = -(-n_panels // cols)
+    fig, axes = plt.subplots(rows, cols, figsize=(11.5, panel_height * rows),
+                             facecolor=palette["surface"], squeeze=False)
+    flat = [axes[i // cols][i % cols] for i in range(rows * cols)]
+    for ax in flat[n_panels:]:
+        ax.set_visible(False)
+    return fig, flat
+
+
+def _bars_facets(df, metric, theme, palette, engines, templates, stats, out_dir) -> Path:
+    """One panel per template, linear axis, grouped bars with an instance range."""
+    title, unit = METRICS[metric]
+    fig, axes = _facet_grid(len(templates), palette)
+
+    for index, template in enumerate(templates):
+        ax = axes[index]
+        cells = [stats[(stats["template"] == template) & (stats["engine"] == e)]
+                 for e in engines]
+        positions = np.arange(len(engines))
+        heights, lows, highs = [], [], []
+        for cell in cells:
+            if cell.empty or not np.isfinite(cell.iloc[0]["geomean"]):
+                heights.append(np.nan)
+                lows.append(np.nan)
+                highs.append(np.nan)
+            else:
+                row = cell.iloc[0]
+                heights.append(row["geomean"])
+                lows.append(row["low"])
+                highs.append(row["high"])
+
+        drawn = False
+        for slot, (x, height) in enumerate(zip(positions, heights)):
+            if not np.isfinite(height):
+                continue
+            drawn = True
+            color = series_color(theme, slot)
+            ax.bar(x, height, width=0.66, color=color, zorder=2)
+            # Whisker = slowest and fastest instance, so the bar is never read
+            # as a property of the template when it is an average over
+            # instances that disagree.
+            ax.plot([x, x], [lows[slot], highs[slot]], color=palette["text_secondary"],
+                    linewidth=1.3, zorder=4, solid_capstyle="butt")
+            for end in (lows[slot], highs[slot]):
+                ax.plot([x - 0.14, x + 0.14], [end, end],
+                        color=palette["text_secondary"], linewidth=1.3, zorder=4)
+            # Above the whisker, not the bar: on a template whose instances
+            # disagree the whisker top is far above the bar, and a label pinned
+            # to the bar lands on top of the whisker line.
+            ax.annotate(_fmt(height), (x, max(height, highs[slot])),
+                        textcoords="offset points", xytext=(0, 4), ha="center",
+                        fontsize=7.5, color=palette["text_secondary"], zorder=5)
+
+        if not drawn:
+            ax.text(0.5, 0.5, "no successful runs", transform=ax.transAxes,
+                    ha="center", va="center", fontsize=9, style="italic",
+                    color=palette["text_muted"])
+            ax.set_yticks([])
+        else:
+            top = np.nanmax(highs + heights)
+            ax.set_ylim(0, top * 1.18)
+
+        ax.set_xticks(positions)
+        ax.set_xticklabels(engines, fontsize=7 if max(map(len, engines)) > 12 else 8,
+                           color=palette["text_secondary"])
+        ax.set_xlim(-0.65, len(engines) - 0.35)
+        ax.set_title(_short(template), fontsize=9.5, color=palette["text_primary"],
+                     loc="left", pad=6)
+        _style_axes(ax, palette)
+        ax.tick_params(axis="y", labelsize=7.5)
+
+    fig.suptitle(f"{title} per query template", color=palette["text_primary"],
+                 fontsize=12, x=0.012, ha="left", y=0.995)
+    fig.supylabel(unit, color=palette["text_secondary"], fontsize=9)
+    fig.text(0.012, 0.004,
+             "bar = geometric mean over instances of the per-instance median; "
+             "whisker = slowest to fastest instance. Each panel has its own scale.",
+             fontsize=8, color=palette["text_muted"])
+    fig.tight_layout(rect=(0.012, 0.022, 1, 0.975))
+    return _save(fig, palette, out_dir, f"{metric}-by-template-facets-{theme}")
+
+
+def _bars_single(df, metric, theme, palette, engines, templates, stats, out_dir) -> Path:
+    """Every template on one log axis: comparable at a glance, bar length unfaithful."""
+    title, unit = METRICS[metric]
+    fig, ax = plt.subplots(figsize=(max(9.5, 0.78 * len(templates)), 5.4),
+                           facecolor=palette["surface"])
+
+    width = 0.8 / len(engines)
+    positive = stats["geomean"][stats["geomean"] > 0]
+    floor = float(positive.min()) / 3 if len(positive) else 1.0
+
+    for slot, engine in enumerate(engines):
+        xs, heights, lows, highs = [], [], [], []
+        for index, template in enumerate(templates):
+            cell = stats[(stats["template"] == template) & (stats["engine"] == engine)]
+            if cell.empty or not np.isfinite(cell.iloc[0]["geomean"]):
+                continue
+            row = cell.iloc[0]
+            xs.append(index + (slot - (len(engines) - 1) / 2) * width)
+            heights.append(row["geomean"])
+            lows.append(row["low"])
+            highs.append(row["high"])
+        if not xs:
+            continue
+        ax.bar(xs, heights, width=width * 0.9, bottom=floor,
+               color=series_color(theme, slot), zorder=2, label=engine)
+        ax.vlines(xs, lows, highs, color=palette["text_secondary"], linewidth=1.1,
+                  zorder=4)
+
+    ax.set_yscale("log")
+    ax.set_ylim(bottom=floor)
+    ax.set_xticks(range(len(templates)))
+    ax.set_xticklabels([_short(t) for t in templates], rotation=45, ha="right",
+                       fontsize=8, color=palette["text_secondary"])
+    ax.set_xlim(-0.7, len(templates) - 0.3)
+    ax.set_ylabel(f"{unit} (log scale)", color=palette["text_secondary"], fontsize=9)
+    ax.set_title(f"{title} per query template", color=palette["text_primary"],
+                 fontsize=12, pad=24, loc="left")
+    _style_axes(ax, palette)
+
+    for index, template in enumerate(templates):
+        if stats[stats["template"] == template]["geomean"].dropna().empty:
+            ax.annotate("no runs", (index, floor), textcoords="offset points",
+                        xytext=(0, 6), ha="center", rotation=90, fontsize=7,
+                        style="italic", color=palette["text_muted"])
+
+    _engine_legend(ax, engines, theme, palette, loc="lower right",
+                   bbox_to_anchor=(1, 1.005))
+    fig.text(0.008, 0.008,
+             "bar = geometric mean over instances of the per-instance median; "
+             "whisker = slowest to fastest instance. Log axis: bar *length* is not "
+             "proportional to the value -- read the top edge.",
+             fontsize=8, color=palette["text_muted"])
+    fig.tight_layout(rect=(0, 0.045, 1, 1))
+    return _save(fig, palette, out_dir, f"{metric}-by-template-single-{theme}")
+
+
+def plot_metric_by_template(df: pd.DataFrame, metric: str, theme: str = "light",
+                            layout: str = "facets",
+                            out_dir: Path = FIGURE_DIR) -> Path:
+    """Grouped bars per template. `layout` is `facets` (linear) or `single` (log)."""
+    if layout not in LAYOUTS:
+        raise ValueError(f"layout must be one of {LAYOUTS}, got {layout!r}")
+    palette = THEMES[theme]
+    engines = engine_order(df)
+    templates = template_order(df)
+    stats = two_stage(df, metric)
+    draw = _bars_facets if layout == "facets" else _bars_single
+    return draw(df, metric, theme, palette, engines, templates, stats, out_dir)
+
+
+def plot_instance_spread(df: pd.DataFrame, metric: str = "time_ms",
+                         theme: str = "light", out_dir: Path = FIGURE_DIR) -> Path:
+    """Every instance drawn separately, so the template-level bar can be checked.
+
+    This is the figure the aggregation question is really about. Where the five
+    bars of one colour are the same height, the template summary describes its
+    instances. Where they are not -- `discover-6`, where two instances run two
+    orders of magnitude slower than the other three -- the summary is a
+    statement about a mixture, and which mode it lands on is decided by the
+    workload's choice of constants rather than by the engine.
+    """
+    palette = THEMES[theme]
+    engines = engine_order(df)
+    templates = template_order(df)
+    stage1 = per_instance(df, metric)
+    _, unit = METRICS[metric]
+
+    fig, axes = _facet_grid(len(templates), palette)
+    for index, template in enumerate(templates):
+        ax = axes[index]
+        block = stage1[stage1["template"] == template]
+        instances = sorted(block["instance"].unique(), key=str)
+        width = 0.8 / max(len(engines), 1)
+        drawn = False
+        for slot, engine in enumerate(engines):
+            xs, heights = [], []
+            for position, instance in enumerate(instances):
+                cell = block[(block["engine"] == engine) & (block["instance"] == instance)]
+                if cell.empty:
+                    continue
+                xs.append(position + (slot - (len(engines) - 1) / 2) * width)
+                heights.append(float(cell.iloc[0]["value"]))
+            if xs:
+                drawn = True
+                ax.bar(xs, heights, width=width * 0.9, color=series_color(theme, slot),
+                       zorder=2)
+        if not drawn:
+            ax.text(0.5, 0.5, "no successful runs", transform=ax.transAxes,
+                    ha="center", va="center", fontsize=9, style="italic",
+                    color=palette["text_muted"])
+            ax.set_yticks([])
+        ax.set_xticks(range(len(instances)))
+        ax.set_xticklabels([str(i) for i in instances], fontsize=7.5,
+                           color=palette["text_secondary"])
+        ax.set_title(_short(template), fontsize=9.5, color=palette["text_primary"],
+                     loc="left", pad=6)
+        _style_axes(ax, palette)
+        ax.tick_params(axis="y", labelsize=7.5)
+
+    fig.suptitle("Per-instance execution time (median over replications)",
+                 color=palette["text_primary"], fontsize=12, x=0.012, ha="left", y=0.995)
+    fig.supxlabel("instance", color=palette["text_secondary"], fontsize=9)
+    fig.supylabel(unit, color=palette["text_secondary"], fontsize=9)
+    _engine_legend(fig, engines, theme, palette, loc="upper right",
+                   bbox_to_anchor=(0.995, 1.0))
+    fig.text(0.012, 0.003,
+             "one bar per instance; a template whose bars differ is not summarised "
+             "faithfully by a single number",
+             fontsize=8, color=palette["text_muted"])
+    fig.tight_layout(rect=(0.012, 0.038, 1, 0.975))
+    return _save(fig, palette, out_dir, f"instance-spread-{metric}-{theme}")
+
+
+def plot_variance_share(df: pd.DataFrame, metric: str = "time_ms",
+                        theme: str = "light", out_dir: Path = FIGURE_DIR) -> Path:
+    """Share of log-scale variance that lies between instances, per template.
+
+    A proportion on a fixed 0-1 scale, which is exactly what a bar chart is for.
+    High bars mark the templates where more replications buy nothing: the
+    spread is between the queries, not between the runs.
+    """
+    palette = THEMES[theme]
+    engines = engine_order(df)
+    table = variance_decomposition(df, metric)
+    if table.empty:
+        raise ValueError("no template has two comparable instances")
+    templates = [t for t in template_order(df) if t in set(table["template"])]
+
+    fig, ax = plt.subplots(figsize=(max(9.0, 0.78 * len(templates)), 4.6),
+                           facecolor=palette["surface"])
+    width = 0.8 / len(engines)
+    for slot, engine in enumerate(engines):
+        xs, heights = [], []
+        for index, template in enumerate(templates):
+            cell = table[(table["template"] == template) & (table["engine"] == engine)]
+            if cell.empty or not np.isfinite(cell.iloc[0]["instance_share"]):
+                continue
+            xs.append(index + (slot - (len(engines) - 1) / 2) * width)
+            heights.append(float(cell.iloc[0]["instance_share"]))
+        if xs:
+            ax.bar(xs, heights, width=width * 0.9, color=series_color(theme, slot),
+                   zorder=2)
+
+    ax.axhline(0.5, color=palette["text_muted"], linewidth=1, linestyle=(0, (4, 3)),
+               zorder=3)
+    # Bars reach the reference line almost everywhere, so the note needs an
+    # opaque backing rather than a clear patch of chart to sit in.
+    ax.annotate("half the spread is between instances", (0.004, 0.5),
+                xycoords=("axes fraction", "data"), fontsize=8,
+                color=palette["text_muted"], va="center", zorder=5,
+                bbox=dict(facecolor=palette["surface"], edgecolor="none", pad=1.5))
+    ax.set_ylim(0, 1)
+    ax.set_xticks(range(len(templates)))
+    ax.set_xticklabels([_short(t) for t in templates], rotation=45, ha="right",
+                       fontsize=8, color=palette["text_secondary"])
+    ax.set_xlim(-0.7, len(templates) - 0.3)
+    ax.set_ylabel("between-instance share of variance",
+                  color=palette["text_secondary"], fontsize=9)
+    ax.set_title("How much of the spread is the query, not the run",
+                 color=palette["text_primary"], fontsize=12, pad=24, loc="left")
+    _style_axes(ax, palette)
+    _engine_legend(ax, engines, theme, palette, loc="lower right",
+                   bbox_to_anchor=(1, 1.005))
+    fig.text(0.008, 0.008,
+             "variance of log execution time, split between instances of a template "
+             "and replications of one instance",
+             fontsize=8, color=palette["text_muted"])
+    fig.tight_layout(rect=(0, 0.04, 1, 1))
+    return _save(fig, palette, out_dir, f"instance-variance-share-{theme}")
+
+
 def plot_completion(df: pd.DataFrame, theme: str = "light",
                     out_dir: Path = FIGURE_DIR) -> Path:
-    """How every run ended, per template per engine.
+    """How every run ended, per template per engine, as stacked vertical bars.
 
     Answers directly whether one engine finishes more of the workload than
     another, which the timing figures cannot show because they plot only the
@@ -154,36 +383,34 @@ def plot_completion(df: pd.DataFrame, theme: str = "light",
     templates = template_order(df)
     kinds = ["ok", "timeout", "crash", "unsupported"]
 
-    height = 0.34 * len(templates) * len(engines) + 2.2
-    fig, ax = plt.subplots(figsize=(9.2, height), facecolor=palette["surface"])
+    fig, ax = plt.subplots(figsize=(max(9.5, 0.78 * len(templates)), 5.2),
+                           facecolor=palette["surface"])
 
-    labels, positions, row = [], [], 0.0
-    for template in templates:
+    width = 0.84 / len(engines)
+    ticks, labels = [], []
+    for index, template in enumerate(templates):
         for slot, engine in enumerate(engines):
             runs = df[(df["template"] == template) & (df["engine"] == engine)]
-            left = 0
+            x = index + (slot - (len(engines) - 1) / 2) * width
+            bottom = 0
             for kind in kinds:
-                width = int((runs["failure_kind"] == kind).sum())
-                if not width:
+                height = int((runs["failure_kind"] == kind).sum())
+                if not height:
                     continue
-                ax.barh(row, width, left=left, height=0.72, color=OUTCOME_STATUS[kind],
-                        edgecolor=palette["surface"], linewidth=1.5, zorder=2)
-                if width >= 4:
-                    # Label inside the segment: status colour never stands alone.
-                    ax.text(left + width / 2, row, str(width), ha="center", va="center",
-                            fontsize=7.5, color="#ffffff", zorder=3)
-                left += width
-            labels.append(f"{template.replace('interactive-', '')}  ·  {engine}")
-            positions.append(row)
-            row += 1
-        row += 0.5
+                ax.bar(x, height, width=width * 0.92, bottom=bottom,
+                       color=OUTCOME_STATUS[kind], edgecolor=palette["surface"],
+                       linewidth=0.8, zorder=2)
+                bottom += height
+        ticks.append(index)
+        labels.append(_short(template))
 
-    ax.set_yticks(positions)
-    ax.set_yticklabels(labels, color=palette["text_secondary"], fontsize=8)
-    ax.invert_yaxis()
-    ax.set_xlabel("runs", color=palette["text_secondary"], fontsize=9)
+    ax.set_xticks(ticks)
+    ax.set_xticklabels(labels, rotation=45, ha="right", fontsize=8,
+                       color=palette["text_secondary"])
+    ax.set_xlim(-0.7, len(templates) - 0.3)
+    ax.set_ylabel("runs", color=palette["text_secondary"], fontsize=9)
     ax.set_title("How each run ended, per template and engine",
-                 color=palette["text_primary"], fontsize=12, pad=38, loc="left")
+                 color=palette["text_primary"], fontsize=12, pad=24, loc="left")
     _style_axes(ax, palette)
 
     handles = [plt.Line2D([], [], marker="s", linestyle="none", markersize=9,
@@ -194,13 +421,11 @@ def plot_completion(df: pd.DataFrame, theme: str = "light",
     for text in legend.get_texts():
         text.set_color(palette["text_secondary"])
 
-    fig.tight_layout()
-    out_dir.mkdir(parents=True, exist_ok=True)
-    path = out_dir / f"completion-by-template-{theme}.png"
-    fig.savefig(path, dpi=200, facecolor=palette["surface"])
-    fig.savefig(path.with_suffix(".pdf"), facecolor=palette["surface"])
-    plt.close(fig)
-    return path
+    fig.text(0.008, 0.008,
+             f"bars within a template group are engines, in order: {', '.join(engines)}",
+             fontsize=8, color=palette["text_muted"])
+    fig.tight_layout(rect=(0, 0.04, 1, 1))
+    return _save(fig, palette, out_dir, f"completion-by-template-{theme}")
 
 
 def _delivery_curve(runs: pd.DataFrame, grid: "np.ndarray") -> "np.ndarray":
@@ -237,65 +462,48 @@ def plot_arrival_curves(df: pd.DataFrame, theme: str = "light",
     templates = template_order(df)
     grid = np.logspace(1, np.log10(df["time_ms"].max()), 250)
 
-    cols = 3
-    rows = -(-len(templates) // cols)
-    fig, axes = plt.subplots(rows, cols, figsize=(11.5, 2.5 * rows),
-                             facecolor=palette["surface"], squeeze=False)
-
+    fig, axes = _facet_grid(len(templates), palette, panel_height=2.5)
     for index, template in enumerate(templates):
-        ax = axes[index // cols][index % cols]
+        ax = axes[index]
         for slot, engine in enumerate(engines):
             runs = df[(df["template"] == template) & (df["engine"] == engine)]
             ax.plot(grid, _delivery_curve(runs, grid), color=series_color(theme, slot),
-                    linewidth=2, solid_joinstyle="round",
-                    label=engine if index == 0 else None, zorder=2)
+                    linewidth=2, solid_joinstyle="round", zorder=2)
         ax.set_xscale("log")
         ax.set_ylim(bottom=0)
         if ax.get_ylim()[1] < 1:
             # A panel where nothing was ever delivered still reads as 0..1,
             # not as a fractional axis around zero.
             ax.set_ylim(0, 1)
-        ax.set_title(template.replace("interactive-", ""), fontsize=9.5,
-                     color=palette["text_primary"], loc="left", pad=6)
+        ax.set_title(_short(template), fontsize=9.5, color=palette["text_primary"],
+                     loc="left", pad=6)
         _style_axes(ax, palette, grid_axis="both")
         ax.tick_params(labelsize=7.5)
 
-    for index in range(len(templates), rows * cols):
-        axes[index // cols][index % cols].set_visible(False)
-
     fig.suptitle("Results delivered over elapsed time (mean across all runs)",
                  color=palette["text_primary"], fontsize=12, x=0.012, ha="left", y=0.995)
-    handles, labels = axes[0][0].get_legend_handles_labels()
-    legend = fig.legend(handles, labels, loc="upper right", bbox_to_anchor=(0.995, 1.0),
-                        frameon=False, fontsize=9, ncol=len(engines))
-    for text in legend.get_texts():
-        text.set_color(palette["text_secondary"])
-
+    _engine_legend(fig, engines, theme, palette, loc="upper right",
+                   bbox_to_anchor=(0.995, 1.0))
     fig.supxlabel("elapsed milliseconds (log scale)", color=palette["text_secondary"],
                   fontsize=9)
     fig.supylabel("results delivered", color=palette["text_secondary"], fontsize=9)
     fig.text(0.012, 0.002, "partial output from timed-out runs is included",
              fontsize=8, color=palette["text_muted"])
     fig.tight_layout(rect=(0.012, 0.022, 1, 0.975))
-
-    out_dir.mkdir(parents=True, exist_ok=True)
-    path = out_dir / f"result-arrival-curves-{theme}.png"
-    fig.savefig(path, dpi=200, facecolor=palette["surface"])
-    fig.savefig(path.with_suffix(".pdf"), facecolor=palette["surface"])
-    plt.close(fig)
-    return path
+    return _save(fig, palette, out_dir, f"result-arrival-curves-{theme}")
 
 
 def plot_crossover(df: pd.DataFrame, theme: str = "light",
                    out_dir: Path = FIGURE_DIR) -> Path:
     """Speedup against how expensive the query is for the baseline engine.
 
-    One mark per template, so this is an all-pairs form: a single series, direct
-    labelled, no categorical palette needed. The break-even line at 1.0 is the
-    point of the figure - which side a template lands on is predicted by how
-    long the baseline took, not by anything about the template itself.
+    One mark per (template, instance), so this is an all-pairs form: a single
+    series, no categorical palette needed. It is drawn per instance rather than
+    per template deliberately -- the instances of one template can land on
+    opposite sides of break-even, and a per-template mark would hide exactly
+    that.
     """
-    from .completion import matched_timing
+    from .aggregate import per_instance as _per_instance
 
     palette = THEMES[theme]
     engines = engine_order(df)
@@ -307,71 +515,47 @@ def plot_crossover(df: pd.DataFrame, theme: str = "light",
         raise ValueError("at most 3 engines can be compared against the baseline; "
                          "facet instead of seating a 4th hue")
 
-    matched = matched_timing(df, "time_ms")
+    wide = _per_instance(df, "time_ms").pivot_table(
+        index=["template", "instance"], columns="engine", values="value")
+    if baseline not in wide.columns:
+        raise ValueError(f"no successful runs for the baseline engine {baseline}")
 
     fig, ax = plt.subplots(figsize=(9.2, 5.6), facecolor=palette["surface"])
-    top = max(matched[f"vs_{baseline}::{e}"].dropna().astype(float).max() for e in others)
-    ax.axhspan(1, max(top * 1.6, 2), color=palette["grid"], alpha=0.45, zorder=0)
-    ax.axhline(1, color=palette["text_muted"], linewidth=1, linestyle=(0, (4, 3)), zorder=1)
 
-    # One comparison engine: colour each mark by which side of break-even it
-    # lands on. Several: colour carries engine identity instead, and the shaded
-    # region plus the break-even line carry the win/lose reading.
     points = []
     for slot, engine in enumerate(others):
-        col = matched[[f"median::{baseline}", f"vs_{baseline}::{engine}"]].dropna()
-        xs = col[f"median::{baseline}"].astype(float)
-        ys = col[f"vs_{baseline}::{engine}"].astype(float)
+        if engine not in wide.columns:
+            continue
+        pair = wide[[baseline, engine]].dropna()
+        pair = pair[(pair[baseline] > 0) & (pair[engine] > 0)]
+        if pair.empty:
+            continue
+        xs = pair[baseline].astype(float)
+        ys = (pair[engine] / pair[baseline]).astype(float)
         if len(others) == 1:
             for mask, role in ((ys < 1, "good"), (ys >= 1, "critical")):
-                ax.scatter(xs[mask], ys[mask], s=70, color=STATUS[role],
-                           edgecolor=palette["surface"], linewidth=1.5, zorder=3)
+                ax.scatter(xs[mask], ys[mask], s=55, color=STATUS[role],
+                           edgecolor=palette["surface"], linewidth=1.2, zorder=3)
         else:
-            ax.scatter(xs, ys, s=70, color=series_color(theme, slot), label=engine,
-                       edgecolor=palette["surface"], linewidth=1.5, zorder=3)
-        points.extend(zip(xs, ys, matched.loc[col.index, "template"]))
+            ax.scatter(xs, ys, s=55, color=series_color(theme, slot), label=engine,
+                       edgecolor=palette["surface"], linewidth=1.2, zorder=3)
+        points.extend(zip(xs, ys))
     if not points:
-        raise ValueError("no template was completed by every engine, so there is "
-                         "nothing to compare")
+        raise ValueError("no instance was completed by the baseline and another "
+                         "engine, so there is nothing to compare")
 
+    top = max(py for _, py in points)
+    ax.axhspan(1, max(top * 1.6, 2), color=palette["grid"], alpha=0.45, zorder=0)
+    ax.axhline(1, color=palette["text_muted"], linewidth=1, linestyle=(0, (4, 3)),
+               zorder=1)
     ax.set_xscale("log")
     ax.set_yscale("log")
-    # Widen the x range before placing labels so the rightmost one has somewhere
-    # to sit; matplotlib's autoscale does not account for annotation extents.
-    xs_all = [px for px, _, _ in points]
-    ax.set_xlim(min(xs_all) * 0.55, max(xs_all) * 2.4)
-
-    # Greedy de-collision: labels sit right of their mark, flipping left near the
-    # edge, and alternate vertically when two marks land close together.
-    # With several comparison engines the marks for one template share an x, so
-    # the template is labelled once, at its topmost mark; hue carries the engine.
-    if len(others) == 1:
-        to_label = points
-    else:
-        best = {}
-        for px, py, name in points:
-            if name not in best or py > best[name][1]:
-                best[name] = (px, py, name)
-        to_label = list(best.values())
-
-    placed, flip = [], False
-    for xi, yi, name in sorted(to_label, key=lambda p: p[0]):
-        near = any(abs(np.log10(xi) - np.log10(px)) < 0.12
-                   and abs(np.log10(yi) - np.log10(py)) < 0.12 for px, py in placed)
-        flip = not flip if near else False
-        right_edge = xi > max(xs_all) * 0.5
-        ax.annotate(name.replace("interactive-", ""), (xi, yi),
-                    textcoords="offset points",
-                    xytext=(-10 if right_edge else 10, 9 if flip else -3.5),
-                    ha="right" if right_edge else "left",
-                    fontsize=8.5, color=palette["text_secondary"])
-        placed.append((xi, yi))
-    ax.set_xlabel(f"median execution time for {baseline} (ms, log scale)",
+    ax.set_xlabel(f"execution time for {baseline} on that instance (ms, log scale)",
                   color=palette["text_secondary"], fontsize=9)
     label = others[0] if len(others) == 1 else "engine"
     ax.set_ylabel(f"{label} / {baseline}  (log scale)",
                   color=palette["text_secondary"], fontsize=9)
-    ax.set_title(f"Speedup against how expensive the query is for {baseline}",
+    ax.set_title(f"Per-instance speedup against how expensive the query is for {baseline}",
                  color=palette["text_primary"], fontsize=12, pad=16, loc="left")
     _style_axes(ax, palette, grid_axis="both")
 
@@ -386,22 +570,23 @@ def plot_crossover(df: pd.DataFrame, theme: str = "light",
         for text in legend.get_texts():
             text.set_color(palette["text_secondary"])
 
-    fig.text(0.008, 0.012, "matched instances only; dashed line is break-even",
+    fig.text(0.008, 0.012,
+             "one mark per (template, instance) both engines completed; "
+             "dashed line is break-even",
              fontsize=8, color=palette["text_muted"])
     fig.tight_layout(rect=(0, 0.035, 1, 1))
-
-    out_dir.mkdir(parents=True, exist_ok=True)
-    path = out_dir / f"speedup-vs-query-cost-{theme}.png"
-    fig.savefig(path, dpi=200, facecolor=palette["surface"])
-    fig.savefig(path.with_suffix(".pdf"), facecolor=palette["surface"])
-    plt.close(fig)
-    return path
+    return _save(fig, palette, out_dir, f"speedup-vs-query-cost-{theme}")
 
 
-def plot_all(df: pd.DataFrame, out_dir: Path = FIGURE_DIR) -> list[Path]:
-    figures = [plot_metric_by_template(df, metric, theme, out_dir)
-               for metric in METRICS for theme in ("light", "dark")]
+def plot_all(df: pd.DataFrame, out_dir: Path = FIGURE_DIR,
+             layouts: tuple[str, ...] = LAYOUTS) -> list[Path]:
+    """Every figure, in both themes. `layouts` selects the bar-chart forms."""
+    figures = [plot_metric_by_template(df, metric, theme, layout, out_dir)
+               for metric in METRICS for layout in layouts
+               for theme in ("light", "dark")]
     for theme in ("light", "dark"):
+        figures.append(plot_instance_spread(df, "time_ms", theme, out_dir))
+        figures.append(plot_variance_share(df, "time_ms", theme, out_dir))
         figures.append(plot_completion(df, theme, out_dir))
         figures.append(plot_arrival_curves(df, theme, out_dir))
         if 1 < len(engine_order(df)) <= 4:

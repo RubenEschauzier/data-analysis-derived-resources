@@ -11,6 +11,9 @@ from analysis.config import FIGURE_DIR, OUTPUT_DIR, TABLE_DIR
 from analysis.completion import (completion_summary, matched_timing, par_scores,
                                  progress_summary, startup_decomposition)
 from analysis.correctness import per_query_agreement, per_template_agreement, to_markdown
+from analysis.heterogeneity import (instance_ratio_spread, variance_decomposition,
+                                    winner_by_instance)
+from analysis.aggregate import per_instance
 from analysis.loading import discover_datasets, engine_order, load_runs
 from analysis.performance import METRICS, error_summary, per_template_performance
 from analysis.plots import plot_all
@@ -49,6 +52,14 @@ def main() -> None:
     startup = startup_decomposition(df)
     _write(startup, "startup_decomposition")
 
+    variance = variance_decomposition(df)
+    ratio_spread = instance_ratio_spread(df)
+    winners = winner_by_instance(df)
+    _write(variance, "instance_variance")
+    _write(ratio_spread, "instance_ratio_spread")
+    _write(winners, "winner_by_instance")
+    _write(per_instance(df, "time_ms"), "per_instance_time")
+
     figures = plot_all(df)
 
     mismatches = per_query[per_query["status"] == "MISMATCH"]
@@ -74,9 +85,55 @@ def main() -> None:
         "",
         to_markdown(completion),
         "",
+        "## How the numbers are aggregated",
+        "",
+        "Every summary below collapses the runs in two stages: the median over "
+        "the replications of one instance, then the geometric mean over the "
+        "instances of a template. Replications differ by run noise, which a "
+        "median absorbs; instances differ by orders of magnitude, and a "
+        "geometric mean weighs a 10x-slower instance as 10x rather than letting "
+        "it dominate the way an arithmetic mean would. Equal weight per instance "
+        "means an engine cannot move a template's summary by failing more often "
+        "on the hard instance.",
+        "",
+        "Read the next section before trusting any template-level number.",
+        "",
+        "## Do the instances of a template behave alike?",
+        "",
+        "Mostly not. `instance_share` is the fraction of log-scale spread that "
+        "lies between the instances of a template rather than between "
+        "replications of one instance; `spread_factor` is the slowest instance "
+        "median over the fastest, and `run_noise_factor` the same spread within "
+        "one instance. Where the first dwarfs the second, more replications buy "
+        "nothing -- the uncertainty is in which constants the template was bound "
+        "to, not in the measurement.",
+        "",
+        to_markdown(variance),
+        "",
+        "### Does the engine comparison survive per instance?",
+        "",
+        "The template-level ratio recomputed on each instance separately. A row "
+        "marked `straddles_break_even` is one where the engines trade wins "
+        "instance by instance, so the single ratio is an average over a "
+        "disagreement, not a direction.",
+        "",
+        to_markdown(ratio_spread) if len(ratio_spread) else "_None._",
+        "",
+        "### Which engine wins each individual instance",
+        "",
+        to_markdown(winners) if len(winners) else "_None._",
+        "",
         "## Per-template performance (completed runs only -- survivorship-biased)",
         "",
+        "`geomean` is the two-stage aggregate, `pooled_median` the single-stage "
+        "median over all runs at once. Where the two disagree, the template is a "
+        "mixture of instances and the table above says by how much.",
+        "",
         to_markdown(per_template_performance(df, "time_ms")),
+        "",
+        "## Time to last result",
+        "",
+        to_markdown(per_template_performance(df, "last_result_ms")),
         "",
         "## Per-template timing, matched instances only",
         "",
@@ -93,11 +150,14 @@ def main() -> None:
         "",
         to_markdown(par),
         "",
-        "## Setup cost vs streaming speed",
+        "## Setup cost, streaming, and the tail",
         "",
-        "Each run split at its first result. A fixed setup cost and a faster "
-        "execution phase cancel into one unremarkable end-to-end ratio; split "
-        "apart, they are the same story rather than two contradictory ones.",
+        "Each run split into three phases: reaching the first result, streaming "
+        "the rest, and whatever happens after the last result has arrived. The "
+        "middle phase is nearly empty in this dataset -- results arrive in a "
+        "burst -- so `after_last_result` is where the time that is not startup "
+        "actually goes, and an engine can deliver every answer early and still "
+        "finish late.",
         "",
         to_markdown(startup),
         "",
