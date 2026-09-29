@@ -7,6 +7,29 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = ROOT / "data"
 OUTPUT_DIR = ROOT / "output"
+
+
+def output_dir_for(data_dir: Path) -> Path:
+    """Where analysis output belongs for a given data directory.
+
+    A sibling of the data directory, named by swapping a leading `data` for
+    `output`: `data/` writes to `output/`, `data-no-delay/` to `output-no-delay/`.
+    That keeps each dataset's results beside the data that produced them and stops a
+    second dataset from silently overwriting the first's tables and figures, which is
+    what a single fixed output directory invites.
+
+    A directory not named after `data` takes an `output-` prefix instead, so an
+    extraction directory like `.../extracted` lands next to itself rather than
+    colliding with an `output/` that may already hold raw experiment output.
+    """
+    name = data_dir.name
+    if name == "data":
+        derived = "output"
+    elif name.startswith(("data-", "data_")):
+        derived = f"output{name[len('data'):]}"
+    else:
+        derived = f"output-{name}"
+    return data_dir.parent / derived
 FIGURE_DIR = OUTPUT_DIR / "figures"
 TABLE_DIR = OUTPUT_DIR / "tables"
 

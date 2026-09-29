@@ -1,0 +1,19 @@
+| template               | engine              |   instances |   ratio_geomean |   ratio_min |   ratio_max | direction_agrees   | straddles_break_even   |
+|:-----------------------|:--------------------|------------:|----------------:|------------:|------------:|:-------------------|:-----------------------|
+| interactive-discover-1 | derived-resource    |           5 |            0.82 |        0.74 |        0.92 | 5/5                | no                     |
+| interactive-discover-1 | derived-resource-v2 |           5 |            0.86 |        0.77 |        1.02 | 4/5                | yes                    |
+| interactive-discover-2 | derived-resource    |           5 |            0.88 |        0.78 |        1.02 | 4/5                | yes                    |
+| interactive-discover-3 | derived-resource    |           5 |            0.99 |        0.98 |        1    | 4/5                | yes                    |
+| interactive-discover-4 | derived-resource    |           5 |            0.89 |        0.74 |        1.06 | 3/5                | yes                    |
+| interactive-discover-5 | derived-resource    |           5 |            0.85 |        0.72 |        0.97 | 5/5                | no                     |
+| interactive-discover-5 | derived-resource-v2 |           5 |            0.89 |        0.78 |        0.97 | 5/5                | no                     |
+| interactive-discover-6 | derived-resource    |           5 |            1.06 |        0.63 |        1.58 | 3/5                | yes                    |
+| interactive-discover-6 | derived-resource-v2 |           5 |            0.86 |        0.67 |        1.09 | 3/5                | yes                    |
+| interactive-discover-7 | derived-resource    |           3 |            1.15 |        1.08 |        1.25 | 3/3                | no                     |
+| interactive-discover-7 | derived-resource-v2 |           3 |            0.92 |        0.87 |        0.96 | 3/3                | no                     |
+| interactive-discover-8 | derived-resource    |           5 |            0.81 |        0.12 |        1.51 | 1/5                | yes                    |
+| interactive-short-1    | derived-resource    |           5 |            1.25 |        1.13 |        1.43 | 5/5                | no                     |
+| interactive-short-4    | derived-resource    |           5 |            1.53 |        1.32 |        1.9  | 5/5                | no                     |
+| interactive-short-4    | derived-resource-v2 |           5 |            1.06 |        0.97 |        1.11 | 4/5                | yes                    |
+| interactive-short-5    | derived-resource    |           5 |            0.21 |        0.06 |        0.88 | 5/5                | no                     |
+| interactive-short-5    | derived-resource-v2 |           5 |            0.21 |        0.05 |        0.86 | 5/5                | no                     |

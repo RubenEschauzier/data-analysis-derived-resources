@@ -1,0 +1,19 @@
+| template               | engine            |   instances |   instance_share |   spread_factor |   run_noise_factor |   slowest_instance |   fastest_instance |
+|:-----------------------|:------------------|------------:|-----------------:|----------------:|-------------------:|-------------------:|-------------------:|
+| interactive-discover-1 | default           |           5 |            0.72  |            2.02 |               1.27 |                  0 |                  2 |
+| interactive-discover-1 | derived-resources |           5 |            0.434 |            1.57 |               1.32 |                  0 |                  2 |
+| interactive-discover-2 | default           |           5 |            0.985 |            2.46 |               1.05 |                  0 |                  2 |
+| interactive-discover-3 | default           |           5 |            0.68  |            2.01 |               1.19 |                  3 |                  2 |
+| interactive-discover-4 | default           |           5 |            0.812 |            1.93 |               1.17 |                  4 |                  2 |
+| interactive-discover-5 | default           |           5 |            0.675 |            1.64 |               1.17 |                  0 |                  3 |
+| interactive-discover-5 | derived-resources |           5 |            0.7   |            1.43 |               1.14 |                  0 |                  1 |
+| interactive-discover-6 | default           |           4 |            0.995 |           88.08 |               1.15 |                  3 |                  2 |
+| interactive-discover-6 | derived-resources |           5 |            1     |          100.72 |               1.05 |                  0 |                  2 |
+| interactive-discover-7 | default           |           3 |            0.989 |            3.89 |               1.07 |                  4 |                  2 |
+| interactive-discover-7 | derived-resources |           3 |            0.495 |            1.62 |               1.3  |                  4 |                  2 |
+| interactive-discover-8 | default           |           5 |            0.983 |            6.29 |               1.11 |                  3 |                  1 |
+| interactive-short-1    | default           |           5 |            0.333 |            1.44 |               1.37 |                  0 |                  3 |
+| interactive-short-4    | default           |           5 |            0.852 |            2.59 |               1.24 |                  3 |                  0 |
+| interactive-short-4    | derived-resources |           5 |            0.924 |            2.9  |               1.16 |                  3 |                  0 |
+| interactive-short-5    | default           |           5 |            0.999 |           45.47 |               1.03 |                  2 |                  3 |
+| interactive-short-5    | derived-resources |           5 |            0.302 |            1.92 |               1.78 |                  2 |                  3 |

@@ -1,0 +1,12 @@
+template,instances_compared,wins::default,wins::adaptive,wins::adaptive-derived-resources,wins::adaptive-derived-resources-no-chain,wins::adaptive-derived-resources-pattern-only,unanimous,per_instance_winner
+interactive-discover-1,5,0,0,1,0,4,no,"0:adaptive-derived-resources-pattern-only, 1:adaptive-derived-resources-pattern-only, 2:adaptive-derived-resources-pattern-only, 3:adaptive-derived-resources-pattern-only, 4:adaptive-derived-resources"
+interactive-discover-2,5,1,0,0,0,4,no,"0:adaptive-derived-resources-pattern-only, 1:adaptive-derived-resources-pattern-only, 2:default, 3:adaptive-derived-resources-pattern-only, 4:adaptive-derived-resources-pattern-only"
+interactive-discover-3,5,0,0,2,3,0,no,"0:adaptive-derived-resources, 1:adaptive-derived-resources, 2:adaptive-derived-resources-no-chain, 3:adaptive-derived-resources-no-chain, 4:adaptive-derived-resources-no-chain"
+interactive-discover-4,5,1,2,2,0,0,no,"0:adaptive, 1:adaptive-derived-resources, 2:default, 3:adaptive-derived-resources, 4:adaptive"
+interactive-discover-5,5,2,0,0,0,3,no,"0:adaptive-derived-resources-pattern-only, 1:adaptive-derived-resources-pattern-only, 2:default, 3:default, 4:adaptive-derived-resources-pattern-only"
+interactive-discover-6,4,0,1,0,0,3,no,"1:adaptive-derived-resources-pattern-only, 2:adaptive-derived-resources-pattern-only, 3:adaptive, 4:adaptive-derived-resources-pattern-only"
+interactive-discover-7,3,1,0,0,1,1,no,"1:adaptive-derived-resources-pattern-only, 2:default, 4:adaptive-derived-resources-no-chain"
+interactive-discover-8,5,0,3,0,0,2,no,"0:adaptive, 1:adaptive, 2:adaptive-derived-resources-pattern-only, 3:adaptive-derived-resources-pattern-only, 4:adaptive"
+interactive-short-1,5,5,0,0,0,0,yes,"0:default, 1:default, 2:default, 3:default, 4:default"
+interactive-short-4,5,3,2,0,0,0,no,"0:default, 1:adaptive, 2:default, 3:default, 4:adaptive"
+interactive-short-5,5,1,0,0,0,4,no,"0:adaptive-derived-resources-pattern-only, 1:adaptive-derived-resources-pattern-only, 2:adaptive-derived-resources-pattern-only, 3:default, 4:adaptive-derived-resources-pattern-only"

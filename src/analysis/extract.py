@@ -61,6 +61,8 @@ def extract(
     combinations = find_combinations(source)
 
     missing = sorted(set(range(len(names))) - set(combinations))
+    print(combinations)
+    print(names)
     extra = sorted(set(combinations) - set(range(len(names))))
     if missing or extra:
         raise ValueError(

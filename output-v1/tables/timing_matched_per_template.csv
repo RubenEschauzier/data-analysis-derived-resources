@@ -1,0 +1,16 @@
+template,instances_used,instances_total,geomean::adaptive,instance_range::adaptive,geomean::derived-resource,instance_range::derived-resource,geomean::derived-resource-v2,instance_range::derived-resource-v2,vs_adaptive::derived-resource,vs_adaptive::derived-resource-v2
+interactive-discover-1,5,5,1802.5,1650-2042,1471.1,1278-1879,1554.0,1334-2091,0.82,0.86
+interactive-discover-2,0,5,,-,,-,,-,,
+interactive-discover-3,0,5,,-,,-,,-,,
+interactive-discover-4,0,5,,-,,-,,-,,
+interactive-discover-5,5,5,1483.1,1258-1706,1259.3,1052-1635,1325.8,1156-1658,0.85,0.89
+interactive-discover-6,5,5,9770.0,1748-115911,10388.3,1150-178702,8412.0,1241-124996,1.06,0.86
+interactive-discover-7,3,5,2420.6,1828-3060,2787.4,1980-3452,2226.1,1759-2842,1.15,0.92
+interactive-discover-8,0,5,,-,,-,,-,,
+interactive-short-1,0,5,,-,,-,,-,,
+interactive-short-2,0,5,,-,,-,,-,,
+interactive-short-3,0,5,,-,,-,,-,,
+interactive-short-4,5,5,328.9,215-692,501.8,330-914,347.1,231-669,1.53,1.06
+interactive-short-5,5,5,7889.2,1467-46971,1662.4,1292-2601,1666.2,1262-2422,0.21,0.21
+interactive-short-6,0,5,,-,,-,,-,,
+interactive-short-7,0,5,,-,,-,,-,,

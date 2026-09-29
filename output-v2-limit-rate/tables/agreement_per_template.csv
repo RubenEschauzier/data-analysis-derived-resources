@@ -1,0 +1,16 @@
+template,instances,runs_ok::default,runs_ok::derived-resources,results_mismatch,hash_mismatch,nondeterministic,no_data,status
+interactive-discover-1,5,30/30,30/30,0,0,0,0,match
+interactive-discover-2,5,30/30,0/30,0,0,0,5,no data
+interactive-discover-3,5,29/30,0/30,0,0,0,5,no data
+interactive-discover-4,5,30/30,0/30,0,0,0,5,no data
+interactive-discover-5,5,30/30,30/30,0,0,0,0,match
+interactive-discover-6,5,22/30,30/30,0,0,0,1,no data
+interactive-discover-7,5,18/30,18/30,0,0,0,2,no data
+interactive-discover-8,5,30/30,0/30,0,0,4,5,no data
+interactive-short-1,5,30/30,0/30,0,0,0,5,no data
+interactive-short-2,5,0/30,0/30,0,0,0,5,no data
+interactive-short-3,5,0/30,0/30,0,0,0,5,no data
+interactive-short-4,5,30/30,30/30,0,0,0,0,match
+interactive-short-5,5,30/30,30/30,0,0,0,0,match
+interactive-short-6,5,0/30,0/30,0,0,0,5,no data
+interactive-short-7,5,0/30,0/30,0,0,0,5,no data

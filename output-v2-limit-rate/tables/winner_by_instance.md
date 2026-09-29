@@ -1,0 +1,8 @@
+| template               |   instances_compared |   wins default |   wins derived-resources | unanimous   | per_instance_winner                                                                           |
+|:-----------------------|---------------------:|---------------:|-------------------------:|:------------|:----------------------------------------------------------------------------------------------|
+| interactive-discover-1 |                    5 |              2 |                        3 | no          | 0:derived-resources, 1:default, 2:default, 3:derived-resources, 4:derived-resources           |
+| interactive-discover-5 |                    5 |              3 |                        2 | no          | 0:derived-resources, 1:derived-resources, 2:default, 3:default, 4:default                     |
+| interactive-discover-6 |                    4 |              0 |                        4 | yes         | 1:derived-resources, 2:derived-resources, 3:derived-resources, 4:derived-resources            |
+| interactive-discover-7 |                    3 |              1 |                        2 | no          | 1:derived-resources, 2:default, 4:derived-resources                                           |
+| interactive-short-4    |                    5 |              5 |                        0 | yes         | 0:default, 1:default, 2:default, 3:default, 4:default                                         |
+| interactive-short-5    |                    5 |              1 |                        4 | no          | 0:derived-resources, 1:derived-resources, 2:derived-resources, 3:default, 4:derived-resources |

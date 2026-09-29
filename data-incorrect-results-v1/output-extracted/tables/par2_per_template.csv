@@ -1,0 +1,16 @@
+template,par2::default,par2::adaptive,par2::adaptive-derived-resources,par2::adaptive-derived-resources-no-chain,par2::adaptive-derived-resources-pattern-only,vs_default::adaptive,vs_default::adaptive-derived-resources,vs_default::adaptive-derived-resources-no-chain,vs_default::adaptive-derived-resources-pattern-only
+interactive-discover-1,2152.4,1953.1,1719.2,1757.1,1657.0,0.91,0.8,0.82,0.77
+interactive-discover-2,1994.8,1682.3,1553.5,1518.2,1428.2,0.84,0.78,0.76,0.72
+interactive-discover-3,141822.1,109368.8,109037.7,108248.1,109630.0,0.77,0.77,0.76,0.77
+interactive-discover-4,1787.5,1705.5,1522.5,1538.4,1546.6,0.95,0.85,0.86,0.87
+interactive-discover-5,1317.9,1578.9,1287.6,1290.5,1224.5,1.2,0.98,0.98,0.93
+interactive-discover-6,226619.4,46950.4,138427.6,137610.4,68516.0,0.21,0.61,0.61,0.3
+interactive-discover-7,242112.2,241523.7,241800.6,241802.9,241492.5,1.0,1.0,1.0,1.0
+interactive-discover-8,22874.1,62900.7,2389.5,2339.4,2209.6,2.75,0.1,0.1,0.1
+interactive-short-1,1518.4,1649.1,2304.6,2259.9,2169.6,1.09,1.52,1.49,1.43
+interactive-short-2,600000.0,600000.0,600000.0,600000.0,600000.0,1.0,1.0,1.0,1.0
+interactive-short-3,600000.0,600000.0,600000.0,600000.0,600000.0,1.0,1.0,1.0,1.0
+interactive-short-4,408.4,397.9,950.0,1099.2,1037.9,0.97,2.33,2.69,2.54
+interactive-short-5,13715.3,14721.9,4524.6,5681.8,5719.2,1.07,0.33,0.41,0.42
+interactive-short-6,600000.0,600000.0,600000.0,600000.0,600000.0,1.0,1.0,1.0,1.0
+interactive-short-7,600000.0,600000.0,600000.0,600000.0,600000.0,1.0,1.0,1.0,1.0

@@ -1,0 +1,16 @@
+template,geomean::default,pooled_median::default,instance_range::default,geo_sd::default,geomean::adaptive,pooled_median::adaptive,instance_range::adaptive,geo_sd::adaptive,geomean::adaptive-derived-resources,pooled_median::adaptive-derived-resources,instance_range::adaptive-derived-resources,geo_sd::adaptive-derived-resources,geomean::adaptive-derived-resources-no-chain,pooled_median::adaptive-derived-resources-no-chain,instance_range::adaptive-derived-resources-no-chain,geo_sd::adaptive-derived-resources-no-chain,geomean::adaptive-derived-resources-pattern-only,pooled_median::adaptive-derived-resources-pattern-only,instance_range::adaptive-derived-resources-pattern-only,geo_sd::adaptive-derived-resources-pattern-only,vs_default::adaptive,vs_default::adaptive-derived-resources,vs_default::adaptive-derived-resources-no-chain,vs_default::adaptive-derived-resources-pattern-only
+interactive-discover-1,632.3,543.5,480-1036,1.44,498.3,507.5,457-567,1.1,1090.7,1092.0,1072-1122,1.02,1120.7,1119.0,1092-1156,1.02,1021.1,1005.0,980-1100,1.06,0.79,1.72,1.77,1.61
+interactive-discover-2,670.7,726.5,421-1026,1.51,450.6,439.0,436-504,1.06,1075.0,1082.5,1026-1121,1.04,1054.2,1054.5,1024-1086,1.02,994.1,1005.0,932-1060,1.05,0.67,1.6,1.57,1.48
+interactive-discover-3,108080.1,98594.5,81367-163755,1.3,107059.1,98254.0,80688-160364,1.29,105793.1,96775.0,78986-160659,1.31,104890.9,97449.0,75718-159752,1.32,106944.9,99194.5,79610-160126,1.3,0.99,0.98,0.97,0.99
+interactive-discover-4,1626.2,1545.5,1091-2413,1.42,1604.5,1669.5,1432-1830,1.13,1420.4,1295.5,1121-1923,1.32,1435.2,1320.0,1132-1917,1.3,1489.3,1297.0,1181-2030,1.32,0.99,0.87,0.88,0.92
+interactive-discover-5,533.8,538.5,492-556,1.05,558.6,553.0,538-593,1.04,816.1,819.5,776-864,1.04,834.2,824.0,816-856,1.02,821.2,825.0,784-845,1.03,1.05,1.53,1.56,1.54
+interactive-discover-6,2133.5,2264.0,1481-3564,1.48,1300.0,1290.0,1172-1652,1.15,1370.6,1154.0,1050-2431,1.42,1378.6,1174.0,1060-2524,1.43,1114.8,1071.0,1016-1261,1.11,0.61,0.64,0.65,0.52
+interactive-discover-7,2443.5,2646.5,1587-3474,1.49,1771.1,1775.0,1406-2226,1.26,2474.8,2377.5,1861-3062,1.29,1982.0,1996.0,1566-2442,1.25,1861.5,1861.5,1498-2328,1.25,0.72,1.01,0.81,0.76
+interactive-discover-8,5797.7,6322.0,578-31181,4.61,1365.5,758.0,446-4256,2.88,1634.2,1306.5,1000-4829,1.91,1580.0,1257.0,984-4574,1.9,1560.9,1164.5,954-4586,1.92,0.24,0.28,0.27,0.27
+interactive-short-1,335.0,337.5,323-347,1.03,328.8,330.5,322-337,1.02,1745.0,1700.5,1619-2000,1.09,1698.1,1719.0,1620-1818,1.06,1660.4,1600.5,1521-2052,1.14,0.98,5.21,5.07,4.96
+interactive-short-2,,,-,,,,-,,,,-,,,,-,,,,-,,,,,
+interactive-short-3,,,-,,,,-,,,,-,,,,-,,,,-,,,,,
+interactive-short-4,133.2,126.0,111-188,1.26,134.7,130.5,110-188,1.26,180.3,192.0,148-221,1.21,186.7,198.0,144-252,1.23,233.6,237.0,148-362,1.44,1.01,1.35,1.4,1.75
+interactive-short-5,383.1,364.0,342-462,1.13,381.6,363.5,340-452,1.13,1226.6,1202.5,1168-1392,1.07,1253.0,1206.0,1152-1496,1.11,1258.8,1107.5,1014-2350,1.42,1.0,3.2,3.27,3.29
+interactive-short-6,,,-,,,,-,,,,-,,,,-,,,,-,,,,,
+interactive-short-7,,,-,,,,-,,,,-,,,,-,,,,-,,,,,

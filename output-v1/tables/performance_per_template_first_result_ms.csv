@@ -1,0 +1,16 @@
+template,geomean::adaptive,pooled_median::adaptive,instance_range::adaptive,geo_sd::adaptive,geomean::derived-resource,pooled_median::derived-resource,instance_range::derived-resource,geo_sd::derived-resource,geomean::derived-resource-v2,pooled_median::derived-resource-v2,instance_range::derived-resource-v2,geo_sd::derived-resource-v2,vs_adaptive::derived-resource,vs_adaptive::derived-resource-v2
+interactive-discover-1,498.3,507.5,457-567,1.1,1090.7,1092.0,1072-1122,1.02,795.8,790.5,777-848,1.04,2.19,1.6
+interactive-discover-2,450.6,439.0,436-504,1.06,1075.0,1082.5,1026-1121,1.04,,,-,,2.39,
+interactive-discover-3,107059.1,98254.0,80688-160364,1.29,105793.1,96775.0,78986-160659,1.31,,,-,,0.99,
+interactive-discover-4,1604.5,1669.5,1432-1830,1.13,1420.4,1295.5,1121-1923,1.32,,,-,,0.89,
+interactive-discover-5,558.6,553.0,538-593,1.04,816.1,819.5,776-864,1.04,756.6,761.0,738-766,1.02,1.46,1.35
+interactive-discover-6,1300.0,1290.0,1172-1652,1.15,1370.6,1154.0,1050-2431,1.42,1213.1,1165.0,1126-1326,1.08,1.05,0.93
+interactive-discover-7,1771.1,1775.0,1406-2226,1.26,2474.8,2377.5,1861-3062,1.29,1967.3,2046.5,1652-2204,1.17,1.4,1.11
+interactive-discover-8,1365.5,758.0,446-4256,2.88,1634.2,1306.5,1000-4829,1.91,,,-,,1.2,
+interactive-short-1,328.8,330.5,322-337,1.02,1745.0,1700.5,1619-2000,1.09,,,-,,5.31,
+interactive-short-2,,,-,,,,-,,,,-,,,
+interactive-short-3,,,-,,,,-,,,,-,,,
+interactive-short-4,134.7,130.5,110-188,1.26,180.3,192.0,148-221,1.21,140.3,130.0,114-190,1.24,1.34,1.04
+interactive-short-5,381.6,363.5,340-452,1.13,1226.6,1202.5,1168-1392,1.07,869.5,871.0,865-882,1.01,3.21,2.28
+interactive-short-6,,,-,,,,-,,,,-,,,
+interactive-short-7,,,-,,,,-,,,,-,,,

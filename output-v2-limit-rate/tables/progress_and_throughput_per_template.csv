@@ -1,0 +1,16 @@
+template,median_delivered::default,from_failed_runs::default,median_throughput_per_s::default,median_delivered::derived-resources,from_failed_runs::derived-resources,median_throughput_per_s::derived-resources
+interactive-discover-1,6.0,-,2.9,6.0,-,3.02
+interactive-discover-2,66.0,-,36.16,66.0,2640 over 30 runs,
+interactive-discover-3,68.0,0 over 1 runs,0.67,68.0,3126 over 30 runs,
+interactive-discover-4,3.0,-,2.28,3.0,126 over 30 runs,
+interactive-discover-5,4.0,-,3.81,4.0,-,3.36
+interactive-discover-6,2.0,202 over 8 runs,0.63,2.0,-,0.79
+interactive-discover-7,1.0,15 over 12 runs,0.4,1.0,24 over 12 runs,0.45
+interactive-discover-8,10.0,-,0.53,10.0,300 over 30 runs,
+interactive-short-1,1.0,-,0.78,1.0,30 over 30 runs,
+interactive-short-2,0.0,0 over 30 runs,,0.0,0 over 30 runs,
+interactive-short-3,0.0,3 over 30 runs,,14.0,387 over 30 runs,
+interactive-short-4,1.0,-,4.24,1.0,-,3.74
+interactive-short-5,1.0,-,0.18,1.0,-,0.63
+interactive-short-6,0.0,12 over 30 runs,,0.0,12 over 30 runs,
+interactive-short-7,0.0,0 over 30 runs,,0.0,0 over 30 runs,

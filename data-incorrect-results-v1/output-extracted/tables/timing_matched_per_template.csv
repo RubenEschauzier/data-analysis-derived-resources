@@ -1,0 +1,16 @@
+template,instances_used,instances_total,geomean::default,instance_range::default,geomean::adaptive,instance_range::adaptive,geomean::adaptive-derived-resources,instance_range::adaptive-derived-resources,geomean::adaptive-derived-resources-no-chain,instance_range::adaptive-derived-resources-no-chain,geomean::adaptive-derived-resources-pattern-only,instance_range::adaptive-derived-resources-pattern-only,vs_default::adaptive,vs_default::adaptive-derived-resources,vs_default::adaptive-derived-resources-no-chain,vs_default::adaptive-derived-resources-pattern-only
+interactive-discover-1,5,5,1914.5,1321-2882,1802.5,1650-2042,1471.1,1278-1879,1515.8,1299-1950,1438.6,1196-1872,0.94,0.77,0.79,0.75
+interactive-discover-2,5,5,1813.0,1108-2917,1655.6,1467-1908,1463.4,1220-1881,1420.7,1217-1741,1393.1,1187-1705,0.91,0.81,0.78,0.77
+interactive-discover-3,5,5,108099.5,81369-163758,107064.7,80692-160384,105798.6,78990-160668,104894.4,75720-159761,106949.0,79612-160134,0.99,0.98,0.97,0.99
+interactive-discover-4,5,5,1626.6,1092-2414,1605.1,1432-1831,1421.4,1122-1924,1436.0,1132-1918,1490.4,1182-2032,0.99,0.87,0.88,0.92
+interactive-discover-5,5,5,1230.2,996-1674,1483.1,1258-1706,1259.3,1052-1635,1262.9,1066-1606,1200.3,1016-1536,1.21,1.02,1.03,0.98
+interactive-discover-6,4,5,7596.0,1590-139503,5264.2,1748-113441,5258.9,1150-178702,5231.0,1162-168985,4433.0,1129-174875,0.69,0.69,0.69,0.58
+interactive-discover-7,3,5,2978.0,1598-6168,2420.6,1828-3060,2787.4,1980-3452,2329.4,1678-2941,2129.3,1604-3071,0.81,0.94,0.78,0.72
+interactive-discover-8,5,5,17768.4,7572-46668,2205.9,762-8589,1786.3,1004-5698,1796.6,988-5576,1677.0,956-5457,0.12,0.1,0.1,0.09
+interactive-short-1,5,5,1280.1,1112-1538,1561.8,1265-1898,1946.3,1732-2300,1946.8,1732-2408,1830.0,1628-2206,1.22,1.52,1.52,1.43
+interactive-short-2,0,5,,-,,-,,-,,-,,-,,,,
+interactive-short-3,0,5,,-,,-,,-,,-,,-,,,,
+interactive-short-4,5,5,327.2,215-672,328.9,215-692,501.8,330-914,505.7,316-956,558.3,324-888,1.0,1.53,1.55,1.71
+interactive-short-5,5,5,6869.0,976-44372,7889.2,1467-46971,1662.4,1292-2601,1655.3,1306-2474,1561.7,1256-2440,1.15,0.24,0.24,0.23
+interactive-short-6,0,5,,-,,-,,-,,-,,-,,,,
+interactive-short-7,0,5,,-,,-,,-,,-,,-,,,,
