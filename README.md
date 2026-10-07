@@ -23,7 +23,11 @@ src/analysis/
 main.py                            runs everything, writes output/
 output/
   tables/*.csv, *.md               every table, machine- and human-readable
-  figures/*.png, *.pdf             light and dark rendering of each figure
+  figures/                         one PDF per figure, light theme, grouped as
+    per-template/                    per-metric bars, facets and single layouts
+    per-instance/                    every instance drawn separately
+    completion/                      how runs ended, result-arrival curves
+    heterogeneity/                   variance share, speedup scatter
   report.md                        all tables + figure paths in one document
 ```
 
@@ -141,10 +145,22 @@ and fastest *instance* — not a quantile over runs. On several templates that
 whisker is two orders of magnitude long, which is the most important thing on
 the chart.
 
-Two figures exist only for the heterogeneity question:
-`instance-spread-time_ms-*` draws every instance separately, and
-`instance-variance-share-*` bars the between-instance share of variance per
-template (a proportion on a fixed 0-1 scale, which is what a bar chart is for).
+`per-instance/` draws every instance of every template separately, median over
+replications, so a template-level bar can be checked against what it averages.
+`instance-spread-time_ms` uses completed runs only, since a timeout's wall time is
+the budget rather than a measurement. `instance-spread-delivered`,
+`-throughput_per_s` and `-first_result_ms` use *every* run, timeouts included:
+on a template no engine ever completes (`short-3`) the completed-only views have
+nothing to draw, yet engines still differ in how much partial output they reach.
+A hatched bar is one where no replication completed; an `x` on the baseline marks
+an engine that ran the instance but has nothing positive to draw.
+
+`heterogeneity/instance-variance-share` bars the between-instance share of
+variance per template (a proportion on a fixed 0-1 scale, which is what a bar
+chart is for).
+
+Figures are written as light-theme PDF only. `plot_all(df, theme="dark")` still
+renders the dark variant, suffixed `-dark`, if a slide deck needs it.
 
 ## Timing metrics
 

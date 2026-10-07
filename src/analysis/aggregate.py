@@ -72,6 +72,23 @@ def per_instance(df: pd.DataFrame, metric: str) -> pd.DataFrame:
     return stage1
 
 
+def per_instance_all_runs(df: pd.DataFrame, metric: str) -> pd.DataFrame:
+    """`per_instance` over every run, failed ones included.
+
+    For the progress metrics -- results delivered, throughput, time to first
+    result -- a timed-out run's partial output is a real measurement, and a
+    template that no engine ever completes is exactly where an engine can
+    regress unseen by the completed-only view. `completed` counts the
+    replications that finished, so a caller can tell the two cases apart.
+    """
+    runs = df.assign(**{metric: pd.to_numeric(df[metric], errors="coerce")})
+    runs = runs.dropna(subset=[metric])
+    stage1 = runs.groupby(["engine", "template", "instance"]).agg(
+        value=(metric, "median"), runs=(metric, "size"),
+        completed=("failed", lambda f: int((~f).sum()))).reset_index()
+    return stage1
+
+
 def two_stage(df: pd.DataFrame, metric: str) -> pd.DataFrame:
     """Stage 2: one row per (template, engine), geometric mean over instances.
 

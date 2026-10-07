@@ -31,7 +31,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from .aggregate import per_instance, two_stage
+from .aggregate import per_instance, per_instance_all_runs, two_stage
 from .config import (FIGURE_DIR, OUTCOME_STATUS, STATUS, THEMES, series_color,
                      series_dash)
 from .heterogeneity import variance_decomposition
@@ -43,6 +43,31 @@ METRICS = {
     "first_result_ms": ("Time to first result", "milliseconds"),
     "last_result_ms": ("Time to last result", "milliseconds"),
     "throughput_per_s": ("Result throughput", "results per second"),
+    "delivered": ("Results delivered", "results"),
+}
+
+# Per-template bars. `delivered` is left out: over completed runs it is just the
+# result count, which the agreement tables already cover.
+TEMPLATE_METRICS = ("time_ms", "http_requests", "first_result_ms", "last_result_ms",
+                    "throughput_per_s")
+
+# Per-instance figures. `True` draws every run, failed ones included: for the
+# progress metrics a timed-out run's partial output is real, and a template no
+# engine ever completes is otherwise invisible. Execution time stays
+# completed-only -- a timeout's wall time is the budget, not a measurement.
+INSTANCE_METRICS = {
+    "time_ms": False,
+    "delivered": True,
+    "throughput_per_s": True,
+    "first_result_ms": True,
+}
+
+# Figures are grouped into one subdirectory per kind of question.
+GROUPS = {
+    "per_template": "per-template",
+    "per_instance": "per-instance",
+    "completion": "completion",
+    "heterogeneity": "heterogeneity",
 }
 
 LAYOUTS = ("facets", "single")
@@ -103,11 +128,12 @@ def _engine_legend(fig_or_ax, engines, theme, palette, *, dashed: bool = False,
     return legend
 
 
-def _save(fig, palette, out_dir: Path, name: str) -> Path:
+def _save(fig, palette, out_dir: Path, name: str, theme: str) -> Path:
+    """Vector PDF only. Light is the unsuffixed default; other themes are tagged."""
     out_dir.mkdir(parents=True, exist_ok=True)
-    path = out_dir / f"{name}.png"
-    fig.savefig(path, dpi=200, facecolor=palette["surface"])
-    fig.savefig(path.with_suffix(".pdf"), facecolor=palette["surface"])
+    stem = name if theme == "light" else f"{name}-{theme}"
+    path = out_dir / f"{stem}.pdf"
+    fig.savefig(path, facecolor=palette["surface"])
     plt.close(fig)
     return path
 
@@ -193,7 +219,7 @@ def _bars_facets(df, metric, theme, palette, engines, templates, stats, out_dir)
              fontsize=8, color=palette["text_muted"])
     # Leave the legend its own band under the title, however many rows it wraps to
     fig.tight_layout(rect=(0.012, 0.022, 1, 0.99 - 0.021 * legend_rows(engines)))
-    return _save(fig, palette, out_dir, f"{metric}-by-template-facets-{theme}")
+    return _save(fig, palette, out_dir, f"{metric}-by-template-facets", theme)
 
 
 def _bars_single(df, metric, theme, palette, engines, templates, stats, out_dir) -> Path:
@@ -249,7 +275,7 @@ def _bars_single(df, metric, theme, palette, engines, templates, stats, out_dir)
              "proportional to the value -- read the top edge.",
              fontsize=8, color=palette["text_muted"])
     fig.tight_layout(rect=(0, 0.045, 1, 1))
-    return _save(fig, palette, out_dir, f"{metric}-by-template-single-{theme}")
+    return _save(fig, palette, out_dir, f"{metric}-by-template-single", theme)
 
 
 def plot_metric_by_template(df: pd.DataFrame, metric: str, theme: str = "light",
@@ -267,7 +293,8 @@ def plot_metric_by_template(df: pd.DataFrame, metric: str, theme: str = "light",
 
 
 def plot_instance_spread(df: pd.DataFrame, metric: str = "time_ms",
-                         theme: str = "light", out_dir: Path = FIGURE_DIR) -> Path:
+                         theme: str = "light", out_dir: Path = FIGURE_DIR,
+                         include_failed: bool = False) -> Path:
     """Every instance drawn separately, so the template-level bar can be checked.
 
     This is the figure the aggregation question is really about. Where the five
@@ -276,37 +303,54 @@ def plot_instance_spread(df: pd.DataFrame, metric: str = "time_ms",
     orders of magnitude slower than the other three -- the summary is a
     statement about a mixture, and which mode it lands on is decided by the
     workload's choice of constants rather than by the engine.
+
+    `include_failed` takes the median over every replication rather than the
+    completed ones. That is what surfaces a template like `short-3`, which no
+    engine ever finishes but on which one engine delivers half the partial
+    output of another: the completed-only view has nothing to draw there. A
+    bar is hatched when none of its replications completed, so partial
+    progress is never read as a finished run; an `x` on the baseline marks an
+    engine that ran the instance but has no positive value to draw.
     """
     palette = THEMES[theme]
     engines = engine_order(df)
     templates = template_order(df)
-    stage1 = per_instance(df, metric)
-    _, unit = METRICS[metric]
+    stage1 = (per_instance_all_runs(df, metric) if include_failed
+              else per_instance(df, metric))
+    title, unit = METRICS[metric]
+    ran = df[["engine", "template", "instance"]].drop_duplicates()
 
     fig, axes = _facet_grid(len(templates), palette)
     for index, template in enumerate(templates):
         ax = axes[index]
         block = stage1[stage1["template"] == template]
-        instances = sorted(block["instance"].unique(), key=str)
+        instances = sorted(ran[ran["template"] == template]["instance"].unique(), key=str)
         width = 0.8 / max(len(engines), 1)
         drawn = False
         for slot, engine in enumerate(engines):
-            xs, heights = [], []
+            color = series_color(theme, slot)
             for position, instance in enumerate(instances):
+                x = position + (slot - (len(engines) - 1) / 2) * width
                 cell = block[(block["engine"] == engine) & (block["instance"] == instance)]
-                if cell.empty:
+                value = float(cell.iloc[0]["value"]) if not cell.empty else np.nan
+                if not (np.isfinite(value) and value > 0):
+                    if include_failed:
+                        ax.plot(x, 0, marker="x", markersize=3.5, markeredgewidth=1,
+                                color=color, clip_on=False, zorder=3)
                     continue
-                xs.append(position + (slot - (len(engines) - 1) / 2) * width)
-                heights.append(float(cell.iloc[0]["value"]))
-            if xs:
                 drawn = True
-                ax.bar(xs, heights, width=width * 0.9, color=series_color(theme, slot),
-                       zorder=2)
+                unfinished = include_failed and int(cell.iloc[0]["completed"]) == 0
+                ax.bar(x, value, width=width * 0.9, color=color, zorder=2,
+                       hatch="//////" if unfinished else None,
+                       edgecolor=palette["surface"] if unfinished else color,
+                       linewidth=0)
         if not drawn:
-            ax.text(0.5, 0.5, "no successful runs", transform=ax.transAxes,
+            ax.text(0.5, 0.5, "no runs delivered anything" if include_failed
+                    else "no successful runs", transform=ax.transAxes,
                     ha="center", va="center", fontsize=9, style="italic",
                     color=palette["text_muted"])
             ax.set_yticks([])
+        ax.set_ylim(bottom=0)
         ax.set_xticks(range(len(instances)))
         ax.set_xticklabels([str(i) for i in instances], fontsize=7.5,
                            color=palette["text_secondary"])
@@ -315,18 +359,21 @@ def plot_instance_spread(df: pd.DataFrame, metric: str = "time_ms",
         _style_axes(ax, palette)
         ax.tick_params(axis="y", labelsize=7.5)
 
-    fig.suptitle("Per-instance execution time (median over replications)",
+    scope = "all runs, failures included" if include_failed else "completed runs only"
+    fig.suptitle(f"Per-instance {title[0].lower() + title[1:]} "
+                 f"(median over replications, {scope})",
                  color=palette["text_primary"], fontsize=12, x=0.012, ha="left", y=0.995)
     fig.supxlabel("instance", color=palette["text_secondary"], fontsize=9)
     fig.supylabel(unit, color=palette["text_secondary"], fontsize=9)
-    _engine_legend(fig, engines, theme, palette, dashed=True, loc="upper left",
+    _engine_legend(fig, engines, theme, palette, loc="upper left",
                    bbox_to_anchor=(0.012, 0.978))
-    fig.text(0.012, 0.003,
-             "one bar per instance; a template whose bars differ is not summarised "
-             "faithfully by a single number",
-             fontsize=8, color=palette["text_muted"])
-    fig.tight_layout(rect=(0.012, 0.038, 1, 0.975))
-    return _save(fig, palette, out_dir, f"instance-spread-{metric}-{theme}")
+    note = ("one bar per instance; a template whose bars differ is not summarised "
+            "faithfully by a single number")
+    if include_failed:
+        note += ". Hatched = no replication completed (partial output); x = nothing to draw"
+    fig.text(0.012, 0.003, note, fontsize=8, color=palette["text_muted"])
+    fig.tight_layout(rect=(0.012, 0.038, 1, 0.99 - 0.021 * legend_rows(engines)))
+    return _save(fig, palette, out_dir, f"instance-spread-{metric}", theme)
 
 
 def plot_variance_share(df: pd.DataFrame, metric: str = "time_ms",
@@ -384,7 +431,7 @@ def plot_variance_share(df: pd.DataFrame, metric: str = "time_ms",
              "and replications of one instance",
              fontsize=8, color=palette["text_muted"])
     fig.tight_layout(rect=(0, 0.04, 1, 1))
-    return _save(fig, palette, out_dir, f"instance-variance-share-{theme}")
+    return _save(fig, palette, out_dir, "instance-variance-share", theme)
 
 
 def plot_completion(df: pd.DataFrame, theme: str = "light",
@@ -442,7 +489,7 @@ def plot_completion(df: pd.DataFrame, theme: str = "light",
              f"bars within a template group are engines, in order: {', '.join(engines)}",
              fontsize=8, color=palette["text_muted"])
     fig.tight_layout(rect=(0, 0.04, 1, 1))
-    return _save(fig, palette, out_dir, f"completion-by-template-{theme}")
+    return _save(fig, palette, out_dir, "completion-by-template", theme)
 
 
 def _delivery_curve(runs: pd.DataFrame, grid: "np.ndarray") -> "np.ndarray":
@@ -515,7 +562,7 @@ def plot_arrival_curves(df: pd.DataFrame, theme: str = "light",
              fontsize=8, color=palette["text_muted"])
     # Leave the legend its own band under the title, however many rows it wraps to
     fig.tight_layout(rect=(0.012, 0.022, 1, 0.99 - 0.021 * legend_rows(engines)))
-    return _save(fig, palette, out_dir, f"result-arrival-curves-{theme}")
+    return _save(fig, palette, out_dir, "result-arrival-curves", theme)
 
 
 def plot_crossover(df: pd.DataFrame, theme: str = "light",
@@ -600,20 +647,21 @@ def plot_crossover(df: pd.DataFrame, theme: str = "light",
              "dashed line is break-even",
              fontsize=8, color=palette["text_muted"])
     fig.tight_layout(rect=(0, 0.035, 1, 1))
-    return _save(fig, palette, out_dir, f"speedup-vs-query-cost-{theme}")
+    return _save(fig, palette, out_dir, "speedup-vs-query-cost", theme)
 
 
 def plot_all(df: pd.DataFrame, out_dir: Path = FIGURE_DIR,
-             layouts: tuple[str, ...] = LAYOUTS) -> list[Path]:
-    """Every figure, in both themes. `layouts` selects the bar-chart forms."""
-    figures = [plot_metric_by_template(df, metric, theme, layout, out_dir)
-               for metric in METRICS for layout in layouts
-               for theme in ("light", "dark")]
-    for theme in ("light", "dark"):
-        figures.append(plot_instance_spread(df, "time_ms", theme, out_dir))
-        figures.append(plot_variance_share(df, "time_ms", theme, out_dir))
-        figures.append(plot_completion(df, theme, out_dir))
-        figures.append(plot_arrival_curves(df, theme, out_dir))
-        if 1 < len(engine_order(df)) <= 4:
-            figures.append(plot_crossover(df, theme, out_dir))
+             layouts: tuple[str, ...] = LAYOUTS, theme: str = "light") -> list[Path]:
+    """Every figure in one theme, one subdirectory per group in `GROUPS`."""
+    dirs = {key: out_dir / name for key, name in GROUPS.items()}
+    figures = [plot_metric_by_template(df, metric, theme, layout, dirs["per_template"])
+               for metric in TEMPLATE_METRICS for layout in layouts]
+    figures += [plot_instance_spread(df, metric, theme, dirs["per_instance"],
+                                     include_failed=include_failed)
+                for metric, include_failed in INSTANCE_METRICS.items()]
+    figures.append(plot_completion(df, theme, dirs["completion"]))
+    figures.append(plot_arrival_curves(df, theme, dirs["completion"]))
+    figures.append(plot_variance_share(df, "time_ms", theme, dirs["heterogeneity"]))
+    if 1 < len(engine_order(df)) <= 4:
+        figures.append(plot_crossover(df, theme, dirs["heterogeneity"]))
     return figures
