@@ -31,7 +31,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from .aggregate import per_instance, per_instance_all_runs, two_stage
+from .aggregate import (MATCHED_METRICS, estimator_label, per_instance,
+                        per_instance_all_runs, two_stage)
 from .config import (FIGURE_DIR, OUTCOME_STATUS, STATUS, THEMES, series_color,
                      series_dash)
 from .heterogeneity import variance_decomposition
@@ -43,13 +44,16 @@ METRICS = {
     "first_result_ms": ("Time to first result", "milliseconds"),
     "last_result_ms": ("Time to last result", "milliseconds"),
     "throughput_per_s": ("Result throughput", "results per second"),
+    "answer_rate_per_s": ("Answer delivery rate", "fraction of the answer per second"),
     "delivered": ("Results delivered", "results"),
 }
 
 # Per-template bars. `delivered` is left out: over completed runs it is just the
 # result count, which the agreement tables already cover.
+# Per-template throughput is the answer rate: raw results per second cannot be
+# averaged across instances whose answers differ in size by orders of magnitude.
 TEMPLATE_METRICS = ("time_ms", "http_requests", "first_result_ms", "last_result_ms",
-                    "throughput_per_s")
+                    "answer_rate_per_s")
 
 # Per-instance figures. `True` draws every run, failed ones included: for the
 # progress metrics a timed-out run's partial output is real, and a template no
@@ -148,6 +152,48 @@ def _facet_grid(n_panels: int, palette, cols: int = 3, panel_height: float = 2.4
     return fig, flat
 
 
+def _coverage(stats: pd.DataFrame, template: str, engines) -> tuple[list[str], str, str]:
+    """Per engine, `covered/ran` instances; a status for the template; and a note.
+
+    The status says why a panel may have nothing to draw: `nobody` when no engine
+    has an observed value on any instance (an unsupported query, say), `no_common`
+    when engines cover instances but no single instance is covered by all of them
+    -- a matched metric then has nothing to compare -- and `ok` otherwise. The
+    note says what a matched comparison rests on when that is fewer instances
+    than were run.
+    """
+    labels, any_covered, matched, ran = [], False, None, None
+    for engine in engines:
+        cell = stats[(stats["template"] == template) & (stats["engine"] == engine)]
+        if cell.empty:
+            labels.append("")
+            continue
+        row = cell.iloc[0]
+        labels.append(f"{int(row['n_covered'])}/{int(row['n_ran'])}")
+        any_covered = any_covered or int(row["n_covered"]) > 0
+        ran = int(row["n_ran"]) if ran is None else max(ran, int(row["n_ran"]))
+        if pd.notna(row.get("n_matched", np.nan)):
+            matched = int(row["n_matched"])
+    if not any_covered:
+        return labels, "nobody", ""
+    if matched is not None and matched == 0:
+        return labels, "no_common", ""
+    note = f"compared on {matched} of {ran} instances" if matched is not None and matched < ran else ""
+    # Coverage labels only earn their space where some engine falls short
+    if all(label.split("/")[0] == label.split("/")[-1] for label in labels if label):
+        labels = ["" for _ in labels]
+    return labels, "ok", note
+
+
+def _caption(metric: str) -> str:
+    """What a per-template bar is, for this metric."""
+    estimator = "mean" if estimator_label(metric) == "mean" else "geometric mean"
+    over = (", over the instances every engine covers" if metric in MATCHED_METRICS
+            else "")
+    return (f"bar = {estimator} of the per-instance medians{over}; "
+            "whisker = slowest to fastest instance.")
+
+
 def _bars_facets(df, metric, theme, palette, engines, templates, stats, out_dir) -> Path:
     """One panel per template, linear axis, grouped bars with an instance range."""
     title, unit = METRICS[metric]
@@ -160,19 +206,20 @@ def _bars_facets(df, metric, theme, palette, engines, templates, stats, out_dir)
         positions = np.arange(len(engines))
         heights, lows, highs = [], [], []
         for cell in cells:
-            if cell.empty or not np.isfinite(cell.iloc[0]["geomean"]):
+            if cell.empty or not np.isfinite(cell.iloc[0]["summary"]):
                 heights.append(np.nan)
                 lows.append(np.nan)
                 highs.append(np.nan)
             else:
                 row = cell.iloc[0]
-                heights.append(row["geomean"])
+                heights.append(row["summary"])
                 lows.append(row["low"])
                 highs.append(row["high"])
 
+        coverage, status, note = _coverage(stats, template, engines)
         drawn = False
         for slot, (x, height) in enumerate(zip(positions, heights)):
-            if not np.isfinite(height):
+            if not np.isfinite(height) or status != "ok":
                 continue
             drawn = True
             color = series_color(theme, slot)
@@ -193,7 +240,10 @@ def _bars_facets(df, metric, theme, palette, engines, templates, stats, out_dir)
                         fontsize=7.5, color=palette["text_secondary"], zorder=5)
 
         if not drawn:
-            ax.text(0.5, 0.5, "no successful runs", transform=ax.transAxes,
+            message = {"nobody": "no engine produced a value",
+                       "no_common": "no instance every engine covered"}.get(status,
+                                                                         "no successful runs")
+            ax.text(0.5, 0.5, message, transform=ax.transAxes,
                     ha="center", va="center", fontsize=9, style="italic",
                     color=palette["text_muted"])
             ax.set_yticks([])
@@ -201,24 +251,32 @@ def _bars_facets(df, metric, theme, palette, engines, templates, stats, out_dir)
             top = np.nanmax(highs + heights)
             ax.set_ylim(0, top * 1.18)
 
+        # Engines are identified by the shared legend, in this fixed left-to-right
+        # order; the names themselves are too long to set under five bars.
         ax.set_xticks(positions)
-        ax.set_xticklabels(engines, fontsize=7 if max(map(len, engines)) > 12 else 8,
-                           color=palette["text_secondary"])
+        # Coverage sits where engine names would: `covered/ran` instances, shown
+        # where some engine falls short, so a bar is never read without it.
+        ax.set_xticklabels(coverage, fontsize=7, color=palette["text_muted"])
         ax.set_xlim(-0.65, len(engines) - 0.35)
         ax.set_title(_short(template), fontsize=9.5, color=palette["text_primary"],
                      loc="left", pad=6)
+        if note:
+            ax.set_title(note, fontsize=7, color=palette["text_muted"], loc="right", pad=6)
         _style_axes(ax, palette)
         ax.tick_params(axis="y", labelsize=7.5)
 
     fig.suptitle(f"{title} per query template", color=palette["text_primary"],
                  fontsize=12, x=0.012, ha="left", y=0.995)
     fig.supylabel(unit, color=palette["text_secondary"], fontsize=9)
+    _engine_legend(fig, engines, theme, palette, loc="upper left",
+                   bbox_to_anchor=(0.012, 0.978))
     fig.text(0.012, 0.004,
-             "bar = geometric mean over instances of the per-instance median; "
-             "whisker = slowest to fastest instance. Each panel has its own scale.",
+             f"{_caption(metric)} Each panel has its own scale.\n"
+             "Under a bar: instances the engine has a value on / instances it ran, "
+             "shown where an engine falls short.",
              fontsize=8, color=palette["text_muted"])
     # Leave the legend its own band under the title, however many rows it wraps to
-    fig.tight_layout(rect=(0.012, 0.022, 1, 0.99 - 0.021 * legend_rows(engines)))
+    fig.tight_layout(rect=(0.012, 0.036, 1, 0.99 - 0.021 * legend_rows(engines)))
     return _save(fig, palette, out_dir, f"{metric}-by-template-facets", theme)
 
 
@@ -229,29 +287,42 @@ def _bars_single(df, metric, theme, palette, engines, templates, stats, out_dir)
                            facecolor=palette["surface"])
 
     width = 0.8 / len(engines)
-    positive = stats["geomean"][stats["geomean"] > 0]
+    positive = stats["summary"][stats["summary"] > 0]
     floor = float(positive.min()) / 3 if len(positive) else 1.0
 
+    status = {t: _coverage(stats, t, engines)[1] for t in templates}
+    zeros = []
     for slot, engine in enumerate(engines):
+        color = series_color(theme, slot)
         xs, heights, lows, highs = [], [], [], []
         for index, template in enumerate(templates):
+            if status[template] != "ok":
+                continue
             cell = stats[(stats["template"] == template) & (stats["engine"] == engine)]
-            if cell.empty or not np.isfinite(cell.iloc[0]["geomean"]):
+            if cell.empty or not np.isfinite(cell.iloc[0]["summary"]):
                 continue
             row = cell.iloc[0]
-            xs.append(index + (slot - (len(engines) - 1) / 2) * width)
-            heights.append(row["geomean"])
-            lows.append(row["low"])
+            x = index + (slot - (len(engines) - 1) / 2) * width
+            # A log axis has no place for 0, which for an answer rate is a real
+            # outcome (nothing delivered); marked at the floor instead of dropped.
+            if row["summary"] <= 0:
+                zeros.append((x, color))
+                continue
+            xs.append(x)
+            heights.append(row["summary"])
+            lows.append(max(row["low"], floor))
             highs.append(row["high"])
-        if not xs:
-            continue
-        ax.bar(xs, heights, width=width * 0.9, bottom=floor,
-               color=series_color(theme, slot), zorder=2, label=engine)
-        ax.vlines(xs, lows, highs, color=palette["text_secondary"], linewidth=1.1,
-                  zorder=4)
+        if xs:
+            ax.bar(xs, heights, width=width * 0.9, bottom=floor, color=color, zorder=2,
+                   label=engine)
+            ax.vlines(xs, lows, highs, color=palette["text_secondary"], linewidth=1.1,
+                      zorder=4)
 
     ax.set_yscale("log")
     ax.set_ylim(bottom=floor)
+    for x, color in zeros:
+        ax.annotate("0", (x, floor), textcoords="offset points", xytext=(0, 3),
+                    ha="center", fontsize=7, fontweight="bold", color=color)
     ax.set_xticks(range(len(templates)))
     ax.set_xticklabels([_short(t) for t in templates], rotation=45, ha="right",
                        fontsize=8, color=palette["text_secondary"])
@@ -261,20 +332,24 @@ def _bars_single(df, metric, theme, palette, engines, templates, stats, out_dir)
                  fontsize=12, pad=24, loc="left")
     _style_axes(ax, palette)
 
+    messages = {"nobody": "no values", "no_common": "no common instance"}
     for index, template in enumerate(templates):
-        if stats[stats["template"] == template]["geomean"].dropna().empty:
-            ax.annotate("no runs", (index, floor), textcoords="offset points",
+        message = messages.get(status[template])
+        if message is None and stats[stats["template"] == template]["summary"].dropna().empty:
+            message = "no runs"
+        if message:
+            ax.annotate(message, (index, floor), textcoords="offset points",
                         xytext=(0, 6), ha="center", rotation=90, fontsize=7,
                         style="italic", color=palette["text_muted"])
 
     _engine_legend(ax, engines, theme, palette, loc="lower right",
                    bbox_to_anchor=(1, 1.005))
     fig.text(0.008, 0.008,
-             "bar = geometric mean over instances of the per-instance median; "
-             "whisker = slowest to fastest instance. Log axis: bar *length* is not "
-             "proportional to the value -- read the top edge.",
+             f"{_caption(metric)} Log axis: bar *length* is not proportional to the "
+             "value -- read the top edge.\nCoverage per engine is in the per-template "
+             "table and the facet figure.",
              fontsize=8, color=palette["text_muted"])
-    fig.tight_layout(rect=(0, 0.045, 1, 1))
+    fig.tight_layout(rect=(0, 0.07, 1, 1))
     return _save(fig, palette, out_dir, f"{metric}-by-template-single", theme)
 
 

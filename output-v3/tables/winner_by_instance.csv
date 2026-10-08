@@ -1,0 +1,12 @@
+template,instances_compared,wins::default,wins::adaptive,wins::adaptive-derived-resources,unanimous,per_instance_winner
+interactive-discover-1,5,0,0,5,yes,"0:adaptive-derived-resources, 1:adaptive-derived-resources, 2:adaptive-derived-resources, 3:adaptive-derived-resources, 4:adaptive-derived-resources"
+interactive-discover-2,5,0,0,5,yes,"0:adaptive-derived-resources, 1:adaptive-derived-resources, 2:adaptive-derived-resources, 3:adaptive-derived-resources, 4:adaptive-derived-resources"
+interactive-discover-3,5,0,0,5,yes,"0:adaptive-derived-resources, 1:adaptive-derived-resources, 2:adaptive-derived-resources, 3:adaptive-derived-resources, 4:adaptive-derived-resources"
+interactive-discover-4,5,0,0,5,yes,"0:adaptive-derived-resources, 1:adaptive-derived-resources, 2:adaptive-derived-resources, 3:adaptive-derived-resources, 4:adaptive-derived-resources"
+interactive-discover-5,5,0,0,5,yes,"0:adaptive-derived-resources, 1:adaptive-derived-resources, 2:adaptive-derived-resources, 3:adaptive-derived-resources, 4:adaptive-derived-resources"
+interactive-discover-6,4,0,0,4,yes,"1:adaptive-derived-resources, 2:adaptive-derived-resources, 3:adaptive-derived-resources, 4:adaptive-derived-resources"
+interactive-discover-7,3,0,0,3,yes,"1:adaptive-derived-resources, 2:adaptive-derived-resources, 4:adaptive-derived-resources"
+interactive-discover-8,5,0,2,3,no,"0:adaptive, 1:adaptive-derived-resources, 2:adaptive-derived-resources, 3:adaptive, 4:adaptive-derived-resources"
+interactive-short-1,5,0,0,5,yes,"0:adaptive-derived-resources, 1:adaptive-derived-resources, 2:adaptive-derived-resources, 3:adaptive-derived-resources, 4:adaptive-derived-resources"
+interactive-short-4,5,1,4,0,no,"0:adaptive, 1:default, 2:adaptive, 3:adaptive, 4:adaptive"
+interactive-short-5,5,0,0,5,yes,"0:adaptive-derived-resources, 1:adaptive-derived-resources, 2:adaptive-derived-resources, 3:adaptive-derived-resources, 4:adaptive-derived-resources"
