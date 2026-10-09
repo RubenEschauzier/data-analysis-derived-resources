@@ -1,0 +1,16 @@
+template,instances_used,instances_total,geomean::default,instance_range::default,geomean::adaptive,instance_range::adaptive,geomean::adaptive-derived-resources,instance_range::adaptive-derived-resources,vs_default::adaptive,vs_default::adaptive-derived-resources
+interactive-discover-1,5,5,1877.9,1364-2890,1234.2,972-1478,798.9,608-1229,0.66,0.43
+interactive-discover-2,5,5,1675.6,1054-2569,1115.9,944-1334,804.7,610-1208,0.67,0.48
+interactive-discover-3,5,5,124912.3,94245-187166,123583.0,92864-186684,112159.1,82702-171175,0.99,0.9
+interactive-discover-4,5,5,1859.6,1218-2744,1321.0,1078-1594,847.0,612-1316,0.71,0.46
+interactive-discover-5,5,5,1315.0,1136-1556,1194.4,974-1410,706.4,568-1026,0.91,0.54
+interactive-discover-6,4,5,6448.2,1462-141627,4018.2,1232-110602,2525.9,593-105442,0.62,0.39
+interactive-discover-7,3,5,2712.7,1454-5839,1686.4,1305-2220,737.5,614-1064,0.62,0.27
+interactive-discover-8,5,5,17074.7,6906-44203,791.7,479-4476,460.1,270-1108,0.05,0.03
+interactive-short-1,5,5,1207.4,994-1414,1193.5,1010-1384,867.5,708-1204,0.99,0.72
+interactive-short-2,0,5,,-,,-,,-,,
+interactive-short-3,0,5,,-,,-,,-,,
+interactive-short-4,5,5,312.3,222-561,307.6,220-556,326.6,238-559,0.98,1.05
+interactive-short-5,5,5,7135.9,1001-47894,7622.6,1000-50956,884.2,521-1751,1.07,0.12
+interactive-short-6,0,5,,-,,-,,-,,
+interactive-short-7,0,5,,-,,-,,-,,

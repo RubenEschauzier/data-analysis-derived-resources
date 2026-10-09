@@ -1,0 +1,16 @@
+template,median_delivered::default,from_failed_runs::default,median_throughput_per_s::default,median_delivered::adaptive,from_failed_runs::adaptive,median_throughput_per_s::adaptive,median_delivered::adaptive-derived-resources,from_failed_runs::adaptive-derived-resources,median_throughput_per_s::adaptive-derived-resources
+interactive-discover-1,6.0,-,2.56,6.0,-,4.06,6.0,-,6.23
+interactive-discover-2,66.0,-,37.17,66.0,-,49.46,66.0,-,75.04
+interactive-discover-3,68.0,0 over 2 runs,0.6,68.0,-,0.6,68.0,-,0.66
+interactive-discover-4,3.0,-,2.2,3.0,-,2.69,3.0,-,4.75
+interactive-discover-5,4.0,-,3.53,4.0,-,4.1,4.0,-,6.7
+interactive-discover-6,2.0,198 over 6 runs,0.54,2.0,-,0.75,2.0,-,1.63
+interactive-discover-7,1.0,14 over 12 runs,0.43,1.0,24 over 12 runs,0.6,1.0,-,0.94
+interactive-discover-8,10.0,-,0.51,10.0,-,19.4,10.0,-,25.42
+interactive-short-1,1.0,-,0.82,1.0,-,0.8,1.0,-,1.33
+interactive-short-2,0.0,0 over 30 runs,,0.0,0 over 30 runs,,0.0,0 over 30 runs,
+interactive-short-3,0.0,0 over 30 runs,,7.0,198 over 30 runs,,7.0,254 over 30 runs,
+interactive-short-4,1.0,-,4.2,1.0,-,4.19,1.0,-,3.91
+interactive-short-5,1.0,-,0.18,1.0,-,0.17,1.0,-,1.28
+interactive-short-6,0.0,12 over 30 runs,,0.0,12 over 30 runs,,0.0,12 over 30 runs,
+interactive-short-7,0.0,0 over 30 runs,,0.0,0 over 30 runs,,0.0,0 over 30 runs,

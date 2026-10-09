@@ -17,7 +17,7 @@ from analysis.heterogeneity import (instance_ratio_spread, variance_decompositio
 from analysis.aggregate import per_instance
 from analysis.loading import discover_datasets, engine_order, load_runs
 from analysis.performance import METRICS, error_summary, per_template_performance
-from analysis.plots import plot_all
+from analysis.plots import ARRIVAL_SCALES, plot_all
 
 
 def _write(table, name: str, table_dir: Path) -> None:
@@ -34,6 +34,11 @@ def main() -> None:
                         help="directory to write tables, figures and the report into "
                              "(default: alongside --data-dir, with a leading 'data' "
                              "swapped for 'output')")
+    parser.add_argument("--arrival-scale", choices=(*ARRIVAL_SCALES, "both"),
+                        default="both",
+                        help="time axis of the result-arrival curves: one shared log "
+                             "axis, a linear axis zoomed per panel onto where results "
+                             "arrive, or both as separate figures (default: both)")
     args = parser.parse_args()
 
     data_dir = args.data_dir
@@ -74,7 +79,8 @@ def main() -> None:
     _write(winners, "winner_by_instance", table_dir)
     _write(per_instance(df, "time_ms"), "per_instance_time", table_dir)
 
-    figures = plot_all(df, figure_dir)
+    arrival_scales = ARRIVAL_SCALES if args.arrival_scale == "both" else (args.arrival_scale,)
+    figures = plot_all(df, figure_dir, arrival_scales=arrival_scales)
 
     mismatches = per_query[per_query["status"] == "MISMATCH"]
     report = [

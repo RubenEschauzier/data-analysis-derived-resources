@@ -1,0 +1,16 @@
+template,completed::default,timeout::default,crash::default,unsupported::default,completed::adaptive,timeout::adaptive,crash::adaptive,unsupported::adaptive,completed::adaptive-derived-resources,timeout::adaptive-derived-resources,crash::adaptive-derived-resources,unsupported::adaptive-derived-resources
+interactive-discover-1,30/30,0,0,0,30/30,0,0,0,30/30,0,0,0
+interactive-discover-2,30/30,0,0,0,30/30,0,0,0,30/30,0,0,0
+interactive-discover-3,28/30,2,0,0,30/30,0,0,0,30/30,0,0,0
+interactive-discover-4,30/30,0,0,0,30/30,0,0,0,30/30,0,0,0
+interactive-discover-5,30/30,0,0,0,30/30,0,0,0,30/30,0,0,0
+interactive-discover-6,24/30,6,0,0,30/30,0,0,0,30/30,0,0,0
+interactive-discover-7,18/30,12,0,0,18/30,12,0,0,30/30,0,0,0
+interactive-discover-8,30/30,0,0,0,30/30,0,0,0,30/30,0,0,0
+interactive-short-1,30/30,0,0,0,30/30,0,0,0,30/30,0,0,0
+interactive-short-2,0/30,30,0,0,0/30,30,0,0,0/30,30,0,0
+interactive-short-3,0/30,30,0,0,0/30,30,0,0,0/30,30,0,0
+interactive-short-4,30/30,0,0,0,30/30,0,0,0,30/30,0,0,0
+interactive-short-5,30/30,0,0,0,30/30,0,0,0,30/30,0,0,0
+interactive-short-6,0/30,30,0,0,0/30,30,0,0,0/30,30,0,0
+interactive-short-7,0/30,30,0,0,0/30,30,0,0,0/30,30,0,0

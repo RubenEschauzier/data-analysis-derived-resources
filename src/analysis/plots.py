@@ -28,6 +28,7 @@ import matplotlib
 matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter, MaxNLocator
 import numpy as np
 import pandas as pd
 
@@ -75,6 +76,10 @@ GROUPS = {
 }
 
 LAYOUTS = ("facets", "single")
+
+# Time axis of the arrival curves. `log` shares one axis over the whole run budget;
+# `linear` zooms each panel onto the window in which that template's results arrive.
+ARRIVAL_SCALES = ("log", "linear")
 
 
 def _short(template: str) -> str:
@@ -586,14 +591,36 @@ def _delivery_curve(runs: pd.DataFrame, grid: "np.ndarray") -> "np.ndarray":
     return counts.mean(axis=0)
 
 
+def _arrival_window(runs: pd.DataFrame) -> tuple[float, float]:
+    """The span of time over which `runs` deliver results, padded a little.
+
+    Before the first result every curve sits at zero and after the last one it is
+    flat, so this is the only stretch of a linear axis with anything to read. A
+    template that never delivered anything falls back to its whole run time.
+    """
+    stamps = [t for ts in runs["timestamps"] for t in ts]
+    if not stamps:
+        return 0.0, max(float(runs["time_ms"].max()), 1.0)
+    first, last = float(min(stamps)), float(max(stamps))
+    pad = max(0.05 * (last - first), 0.01 * last, 1.0)
+    return max(first - pad, 0.0), last + pad
+
+
 def plot_arrival_curves(df: pd.DataFrame, theme: str = "light",
-                        out_dir: Path = FIGURE_DIR) -> Path:
+                        out_dir: Path = FIGURE_DIR, scale: str = "log") -> Path:
     """Small multiples: results delivered over elapsed time, one panel per template.
 
     This is throughput as a shape rather than a single number - a steep early
     curve that plateaus reads differently from a slow linear one, and both
     average to the same results-per-second.
+
+    `scale="log"` puts every panel on one log time axis over the full run budget.
+    `scale="linear"` gives each panel its own linear axis, zoomed onto the window
+    in which that template's results arrive (see `_arrival_window`): the shape of
+    delivery is honest there, but panels no longer share a time axis.
     """
+    if scale not in ARRIVAL_SCALES:
+        raise ValueError(f"scale must be one of {ARRIVAL_SCALES}, got {scale!r}")
     palette = THEMES[theme]
     engines = engine_order(df)
     # Lines are an adjacent form, and the palette clears its gates on that pairlist for
@@ -605,17 +632,29 @@ def plot_arrival_curves(df: pd.DataFrame, theme: str = "light",
             f"{len(engines)} series requested but only {len(THEMES[theme]['series'])} "
             "categorical slots exist; facet rather than cycling hues")
     templates = template_order(df)
-    grid = np.logspace(1, np.log10(df["time_ms"].max()), 250)
+    log_grid = np.logspace(1, np.log10(df["time_ms"].max()), 250)
 
     fig, axes = _facet_grid(len(templates), palette, panel_height=2.5)
     for index, template in enumerate(templates):
         ax = axes[index]
+        if scale == "log":
+            grid = log_grid
+        else:
+            # Denser than the log grid: steps are drawn at grid resolution, and
+            # the zoomed window makes each one wide enough to see.
+            grid = np.linspace(*_arrival_window(df[df["template"] == template]), 600)
         for slot, engine in enumerate(engines):
             runs = df[(df["template"] == template) & (df["engine"] == engine)]
             ax.plot(grid, _delivery_curve(runs, grid), color=series_color(theme, slot),
                     linestyle=series_dash(slot), dash_capstyle="round",
                     linewidth=2, solid_joinstyle="round", zorder=2)
-        ax.set_xscale("log")
+        if scale == "log":
+            ax.set_xscale("log")
+        else:
+            ax.set_xlim(grid[0], grid[-1])
+            ax.xaxis.set_major_locator(MaxNLocator(4))
+            ax.xaxis.set_major_formatter(
+                FuncFormatter(lambda x, _: f"{x:,.0f}"))
         ax.set_ylim(bottom=0)
         if ax.get_ylim()[1] < 1:
             # A panel where nothing was ever delivered still reads as 0..1,
@@ -630,14 +669,19 @@ def plot_arrival_curves(df: pd.DataFrame, theme: str = "light",
                  color=palette["text_primary"], fontsize=12, x=0.012, ha="left", y=0.995)
     _engine_legend(fig, engines, theme, palette, dashed=True, loc="upper left",
                    bbox_to_anchor=(0.012, 0.978))
-    fig.supxlabel("elapsed milliseconds (log scale)", color=palette["text_secondary"],
-                  fontsize=9)
+    xlabel = ("elapsed milliseconds (log scale)" if scale == "log" else
+              "elapsed milliseconds (linear, zoomed per panel)")
+    fig.supxlabel(xlabel, color=palette["text_secondary"], fontsize=9)
     fig.supylabel("results delivered", color=palette["text_secondary"], fontsize=9)
-    fig.text(0.012, 0.002, "partial output from timed-out runs is included",
-             fontsize=8, color=palette["text_muted"])
+    note = "partial output from timed-out runs is included"
+    if scale == "linear":
+        note += ("; each panel spans only the window in which results arrive, "
+                 "so time axes differ between panels")
+    fig.text(0.012, 0.002, note, fontsize=8, color=palette["text_muted"])
     # Leave the legend its own band under the title, however many rows it wraps to
     fig.tight_layout(rect=(0.012, 0.022, 1, 0.99 - 0.021 * legend_rows(engines)))
-    return _save(fig, palette, out_dir, "result-arrival-curves", theme)
+    name = "result-arrival-curves" if scale == "log" else "result-arrival-curves-linear"
+    return _save(fig, palette, out_dir, name, theme)
 
 
 def plot_crossover(df: pd.DataFrame, theme: str = "light",
@@ -726,7 +770,8 @@ def plot_crossover(df: pd.DataFrame, theme: str = "light",
 
 
 def plot_all(df: pd.DataFrame, out_dir: Path = FIGURE_DIR,
-             layouts: tuple[str, ...] = LAYOUTS, theme: str = "light") -> list[Path]:
+             layouts: tuple[str, ...] = LAYOUTS, theme: str = "light",
+             arrival_scales: tuple[str, ...] = ARRIVAL_SCALES) -> list[Path]:
     """Every figure in one theme, one subdirectory per group in `GROUPS`."""
     dirs = {key: out_dir / name for key, name in GROUPS.items()}
     figures = [plot_metric_by_template(df, metric, theme, layout, dirs["per_template"])
@@ -735,7 +780,8 @@ def plot_all(df: pd.DataFrame, out_dir: Path = FIGURE_DIR,
                                      include_failed=include_failed)
                 for metric, include_failed in INSTANCE_METRICS.items()]
     figures.append(plot_completion(df, theme, dirs["completion"]))
-    figures.append(plot_arrival_curves(df, theme, dirs["completion"]))
+    figures += [plot_arrival_curves(df, theme, dirs["completion"], scale)
+                for scale in arrival_scales]
     figures.append(plot_variance_share(df, "time_ms", theme, dirs["heterogeneity"]))
     if 1 < len(engine_order(df)) <= 4:
         figures.append(plot_crossover(df, theme, dirs["heterogeneity"]))
