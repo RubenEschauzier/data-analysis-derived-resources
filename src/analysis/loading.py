@@ -14,12 +14,24 @@ from .config import (DATA_DIR, EMPTY_HASH, FAST_FAIL_MS, RAW_GLOB, RAW_PREFIX,
 _TEMPLATE_RE = re.compile(r"^(?P<prefix>.*?)-(?P<family>[a-z]+)-(?P<index>\d+)$")
 
 
-def discover_datasets(data_dir: Path = DATA_DIR) -> dict[str, Path]:
-    """Map engine name -> raw file, one entry per query-results-raw-*.json."""
+def discover_datasets(data_dir: Path = DATA_DIR,
+                      engines: list[str] | None = None) -> dict[str, Path]:
+    """Map engine name -> raw file, one entry per query-results-raw-*.json.
+
+    `engines` restricts the result to those names; asking for one that has no file
+    raises rather than quietly comparing fewer engines than requested.
+    """
     paths = sorted(data_dir.glob(RAW_GLOB))
     if not paths:
         raise FileNotFoundError(f"no files matching {RAW_GLOB} under {data_dir}")
-    return {p.stem[len(RAW_PREFIX):]: p for p in paths}
+    found = {p.stem[len(RAW_PREFIX):]: p for p in paths}
+    if engines is None:
+        return found
+    missing = [e for e in engines if e not in found]
+    if missing:
+        raise FileNotFoundError(f"no raw file for engine(s) {', '.join(missing)} under "
+                                f"{data_dir}; found {', '.join(found)}")
+    return {e: found[e] for e in engines}
 
 
 def _failure_kind(failed: bool, timed_out: bool, time_ms: float) -> str:
@@ -45,14 +57,14 @@ def _template_parts(name: str) -> tuple[str, int]:
     return m.group("family"), int(m.group("index"))
 
 
-def load_runs(data_dir: Path = DATA_DIR) -> pd.DataFrame:
+def load_runs(data_dir: Path = DATA_DIR, engines: list[str] | None = None) -> pd.DataFrame:
     """One row per individual query execution across every engine.
 
     Replication index is inferred from the order records appear in the file: the
     harness writes the full template x instance sweep once per replication.
     """
     frames = []
-    for engine, path in discover_datasets(data_dir).items():
+    for engine, path in discover_datasets(data_dir, engines).items():
         records = json.loads(path.read_text())
         frame = pd.DataFrame.from_records(records)
         frame["engine"] = engine

@@ -1,0 +1,16 @@
+| engine                                         | error                                      |   runs | templates                                                  |
+|:-----------------------------------------------|:-------------------------------------------|-------:|:-----------------------------------------------------------|
+| adaptive                                       | Unexpected "!" at position 0 in state STOP |    122 | discover-7, short-2, short-3, short-6, short-7             |
+| adaptive                                       | terminated                                 |     10 | discover-7, short-6, short-7                               |
+| adaptive-derived-resources                     | Unexpected "!" at position 0 in state STOP |     98 | short-2, short-3, short-6, short-7                         |
+| adaptive-derived-resources                     | terminated                                 |     22 | short-3, short-6, short-7                                  |
+| adaptive-derived-resources-composite-only      | Unexpected "!" at position 0 in state STOP |    118 | discover-7, short-2, short-3, short-6, short-7             |
+| adaptive-derived-resources-composite-only      | terminated                                 |     14 | short-2, short-3, short-6, short-7                         |
+| adaptive-derived-resources-individual-requests | Unexpected "!" at position 0 in state STOP |    110 | short-2, short-3, short-6, short-7                         |
+| adaptive-derived-resources-individual-requests | terminated                                 |     10 | short-2, short-6, short-7                                  |
+| adaptive-derived-resources-no-chain            | Unexpected "!" at position 0 in state STOP |    101 | short-2, short-3, short-6, short-7                         |
+| adaptive-derived-resources-no-chain            | terminated                                 |     19 | short-2, short-3, short-6, short-7                         |
+| adaptive-derived-resources-pattern-only        | Unexpected "!" at position 0 in state STOP |    100 | short-2, short-3, short-6, short-7                         |
+| adaptive-derived-resources-pattern-only        | terminated                                 |     20 | short-2, short-3, short-6, short-7                         |
+| default                                        | Unexpected "!" at position 0 in state STOP |    124 | discover-6, discover-7, short-2, short-3, short-6, short-7 |
+| default                                        | terminated                                 |     14 | short-3, short-6, short-7                                  |

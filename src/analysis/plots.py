@@ -591,6 +591,32 @@ def _delivery_curve(runs: pd.DataFrame, grid: "np.ndarray") -> "np.ndarray":
     return counts.mean(axis=0)
 
 
+def _geomean_arrival_curve(runs: pd.DataFrame, grid: "np.ndarray") -> "np.ndarray":
+    """Results delivered by time t for a typical replication of one instance.
+
+    Aggregated along the time axis rather than the count axis: the k-th step sits
+    at the geometric mean of the times at which the replications delivered their
+    k-th result. Replications of one query return the same results, so the curve
+    keeps whole-number steps that a real run could have taken, where a mean of
+    counts would stair-step through fractions. Geometric because run-to-run noise
+    in elapsed time is multiplicative.
+
+    A step is drawn only while at least half the replications reached it, so a
+    result one lucky run delivered does not show up as typical.
+    """
+    stamps = [np.sort(np.asarray(ts, dtype=float)) for ts in runs["timestamps"]]
+    if not stamps:
+        return np.zeros_like(grid)
+    counts = np.array([len(ts) for ts in stamps])
+    reached = int(np.floor(np.median(counts)))
+    steps = np.array([
+        np.exp(np.mean([np.log(max(ts[k], 1.0)) for ts in stamps if len(ts) > k]))
+        for k in range(reached)])
+    # The set of runs averaged changes with k when counts differ; keep it monotone
+    steps = np.maximum.accumulate(steps) if len(steps) else steps
+    return np.searchsorted(steps, grid, side="right").astype(float)
+
+
 def _arrival_window(runs: pd.DataFrame) -> tuple[float, float]:
     """The span of time over which `runs` deliver results, padded a little.
 
@@ -606,6 +632,71 @@ def _arrival_window(runs: pd.DataFrame) -> tuple[float, float]:
     return max(first - pad, 0.0), last + pad
 
 
+def _check_arrival_series(engines, theme: str, scale: str) -> None:
+    if scale not in ARRIVAL_SCALES:
+        raise ValueError(f"scale must be one of {ARRIVAL_SCALES}, got {scale!r}")
+    # Lines are an adjacent form, and the palette clears its gates on that pairlist for
+    # all eight slots. Beyond three a reader may still compare two non-adjacent lines,
+    # where hue alone is not enough (magenta vs orange measures 12.9 normal-vision,
+    # below the 15 floor), so each series also carries its own dash pattern.
+    if len(engines) > len(THEMES[theme]["series"]):
+        raise ValueError(
+            f"{len(engines)} series requested but only {len(THEMES[theme]['series'])} "
+            "categorical slots exist; facet rather than cycling hues")
+
+
+def _arrival_panel(ax, runs: pd.DataFrame, engines, theme: str, palette, scale: str,
+                   log_grid: "np.ndarray", title: str, curve=_delivery_curve) -> None:
+    """One arrival-curve panel: one aggregated delivery curve per engine over `runs`.
+
+    `curve` collapses an engine's runs into one curve: `_delivery_curve` (mean count,
+    for runs that need not return the same results) or `_geomean_arrival_curve`
+    (typical replication of a single instance).
+    """
+    if scale == "log":
+        grid = log_grid
+    else:
+        # Denser than the log grid: steps are drawn at grid resolution, and
+        # the zoomed window makes each one wide enough to see.
+        grid = np.linspace(*_arrival_window(runs), 600)
+    for slot, engine in enumerate(engines):
+        block = runs[runs["engine"] == engine]
+        ax.plot(grid, curve(block, grid), color=series_color(theme, slot),
+                linestyle=series_dash(slot), dash_capstyle="round",
+                linewidth=2, solid_joinstyle="round", zorder=2)
+    if scale == "log":
+        ax.set_xscale("log")
+    else:
+        ax.set_xlim(grid[0], grid[-1])
+        ax.xaxis.set_major_locator(MaxNLocator(4))
+        ax.xaxis.set_major_formatter(
+            FuncFormatter(lambda x, _: f"{x:,.0f}"))
+    ax.set_ylim(bottom=0)
+    if ax.get_ylim()[1] < 1:
+        # A panel where nothing was ever delivered still reads as 0..1,
+        # not as a fractional axis around zero.
+        ax.set_ylim(0, 1)
+    ax.set_title(title, fontsize=9.5, color=palette["text_primary"], loc="left", pad=6)
+    _style_axes(ax, palette, grid_axis="both")
+    ax.tick_params(labelsize=7.5)
+
+
+def _arrival_labels(fig, engines, theme, palette, scale: str, title: str,
+                    note: str, xlabel_y: float = 0.01) -> None:
+    fig.suptitle(title, color=palette["text_primary"], fontsize=12, x=0.012,
+                 ha="left", y=0.995)
+    _engine_legend(fig, engines, theme, palette, dashed=True, loc="upper left",
+                   bbox_to_anchor=(0.012, 0.978))
+    xlabel = ("elapsed milliseconds (log scale)" if scale == "log" else
+              "elapsed milliseconds (linear, zoomed per panel)")
+    fig.supxlabel(xlabel, color=palette["text_secondary"], fontsize=9, y=xlabel_y)
+    fig.supylabel("results delivered", color=palette["text_secondary"], fontsize=9)
+    note = "partial output from timed-out runs is included" + note
+    if scale == "linear":
+        note += "; each panel zooms onto its own arrival window"
+    fig.text(0.012, 0.002, note, fontsize=8, color=palette["text_muted"])
+
+
 def plot_arrival_curves(df: pd.DataFrame, theme: str = "light",
                         out_dir: Path = FIGURE_DIR, scale: str = "log") -> Path:
     """Small multiples: results delivered over elapsed time, one panel per template.
@@ -619,69 +710,58 @@ def plot_arrival_curves(df: pd.DataFrame, theme: str = "light",
     in which that template's results arrive (see `_arrival_window`): the shape of
     delivery is honest there, but panels no longer share a time axis.
     """
-    if scale not in ARRIVAL_SCALES:
-        raise ValueError(f"scale must be one of {ARRIVAL_SCALES}, got {scale!r}")
     palette = THEMES[theme]
     engines = engine_order(df)
-    # Lines are an adjacent form, and the palette clears its gates on that pairlist for
-    # all eight slots. Beyond three a reader may still compare two non-adjacent lines,
-    # where hue alone is not enough (magenta vs orange measures 12.9 normal-vision,
-    # below the 15 floor), so each series also carries its own dash pattern.
-    if len(engines) > len(THEMES[theme]["series"]):
-        raise ValueError(
-            f"{len(engines)} series requested but only {len(THEMES[theme]['series'])} "
-            "categorical slots exist; facet rather than cycling hues")
+    _check_arrival_series(engines, theme, scale)
     templates = template_order(df)
     log_grid = np.logspace(1, np.log10(df["time_ms"].max()), 250)
 
     fig, axes = _facet_grid(len(templates), palette, panel_height=2.5)
     for index, template in enumerate(templates):
-        ax = axes[index]
-        if scale == "log":
-            grid = log_grid
-        else:
-            # Denser than the log grid: steps are drawn at grid resolution, and
-            # the zoomed window makes each one wide enough to see.
-            grid = np.linspace(*_arrival_window(df[df["template"] == template]), 600)
-        for slot, engine in enumerate(engines):
-            runs = df[(df["template"] == template) & (df["engine"] == engine)]
-            ax.plot(grid, _delivery_curve(runs, grid), color=series_color(theme, slot),
-                    linestyle=series_dash(slot), dash_capstyle="round",
-                    linewidth=2, solid_joinstyle="round", zorder=2)
-        if scale == "log":
-            ax.set_xscale("log")
-        else:
-            ax.set_xlim(grid[0], grid[-1])
-            ax.xaxis.set_major_locator(MaxNLocator(4))
-            ax.xaxis.set_major_formatter(
-                FuncFormatter(lambda x, _: f"{x:,.0f}"))
-        ax.set_ylim(bottom=0)
-        if ax.get_ylim()[1] < 1:
-            # A panel where nothing was ever delivered still reads as 0..1,
-            # not as a fractional axis around zero.
-            ax.set_ylim(0, 1)
-        ax.set_title(_short(template), fontsize=9.5, color=palette["text_primary"],
-                     loc="left", pad=6)
-        _style_axes(ax, palette, grid_axis="both")
-        ax.tick_params(labelsize=7.5)
+        _arrival_panel(axes[index], df[df["template"] == template], engines, theme,
+                       palette, scale, log_grid, _short(template))
 
-    fig.suptitle("Results delivered over elapsed time (mean across all runs)",
-                 color=palette["text_primary"], fontsize=12, x=0.012, ha="left", y=0.995)
-    _engine_legend(fig, engines, theme, palette, dashed=True, loc="upper left",
-                   bbox_to_anchor=(0.012, 0.978))
-    xlabel = ("elapsed milliseconds (log scale)" if scale == "log" else
-              "elapsed milliseconds (linear, zoomed per panel)")
-    fig.supxlabel(xlabel, color=palette["text_secondary"], fontsize=9)
-    fig.supylabel("results delivered", color=palette["text_secondary"], fontsize=9)
-    note = "partial output from timed-out runs is included"
-    if scale == "linear":
-        note += ("; each panel spans only the window in which results arrive, "
-                 "so time axes differ between panels")
-    fig.text(0.012, 0.002, note, fontsize=8, color=palette["text_muted"])
+    _arrival_labels(fig, engines, theme, palette, scale,
+                    "Results delivered over elapsed time (mean across all runs)", "")
     # Leave the legend its own band under the title, however many rows it wraps to
     fig.tight_layout(rect=(0.012, 0.022, 1, 0.99 - 0.021 * legend_rows(engines)))
     name = "result-arrival-curves" if scale == "log" else "result-arrival-curves-linear"
     return _save(fig, palette, out_dir, name, theme)
+
+
+def plot_instance_arrival_curves(df: pd.DataFrame, template: str, theme: str = "light",
+                                 out_dir: Path = FIGURE_DIR, scale: str = "log") -> Path:
+    """The arrival curves of one template, split into one panel per instance.
+
+    The template-level curve averages instances whose results can arrive orders of
+    magnitude apart, so a gap between engines there may come from a single
+    instance. Here each instance stands alone, its replications collapsed into
+    one typical run per engine (see `_geomean_arrival_curve`).
+    """
+    palette = THEMES[theme]
+    engines = engine_order(df)
+    _check_arrival_series(engines, theme, scale)
+    runs = df[df["template"] == template]
+    instances = sorted(runs["instance"].unique(), key=lambda i: (len(str(i)), str(i)))
+    # One shared log axis across the whole workload, so these figures line up with
+    # the template-level one.
+    log_grid = np.logspace(1, np.log10(df["time_ms"].max()), 250)
+
+    fig, axes = _facet_grid(len(instances), palette, panel_height=2.5)
+    for index, instance in enumerate(instances):
+        _arrival_panel(axes[index], runs[runs["instance"] == instance], engines, theme,
+                       palette, scale, log_grid, f"instance {instance}",
+                       curve=_geomean_arrival_curve)
+
+    _arrival_labels(fig, engines, theme, palette, scale,
+                    f"{_short(template)}: results delivered over elapsed time, "
+                    "per instance",
+                    "; k-th step = geomean over replications of the k-th arrival",
+                    xlabel_y=0.045)
+    # A two-row figure is short, so the axis label and the note each need their own band
+    fig.tight_layout(rect=(0.012, 0.07, 1, 0.99 - 0.03 * legend_rows(engines)))
+    suffix = "" if scale == "log" else "-linear"
+    return _save(fig, palette, out_dir, f"{template}{suffix}", theme)
 
 
 def plot_crossover(df: pd.DataFrame, theme: str = "light",
@@ -782,6 +862,9 @@ def plot_all(df: pd.DataFrame, out_dir: Path = FIGURE_DIR,
     figures.append(plot_completion(df, theme, dirs["completion"]))
     figures += [plot_arrival_curves(df, theme, dirs["completion"], scale)
                 for scale in arrival_scales]
+    figures += [plot_instance_arrival_curves(df, template, theme,
+                                             dirs["per_instance"] / "arrival", scale)
+                for template in template_order(df) for scale in arrival_scales]
     figures.append(plot_variance_share(df, "time_ms", theme, dirs["heterogeneity"]))
     if 1 < len(engine_order(df)) <= 4:
         figures.append(plot_crossover(df, theme, dirs["heterogeneity"]))

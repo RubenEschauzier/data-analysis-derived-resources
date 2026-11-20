@@ -59,7 +59,8 @@ the way its values allow:
   real zero where nothing arrived. Raw results per second cannot be averaged
   across instances, since one instance returns 66 results and another 1, so
   each run is scaled by its instance's answer size: the fraction of the answer
-  delivered per second. Those are comparable across instances, so stage 2 takes
+  delivered per second, from the start of execution to the last result (see
+  `_with_answer_rate`). Those are comparable across instances, so stage 2 takes
   an equal-weight *arithmetic* mean, in which an instance that delivered
   nothing counts as the 0 it is.
 
@@ -159,15 +160,29 @@ def _with_answer_rate(df: pd.DataFrame) -> pd.DataFrame:
     a more complete answer. Where engines disagree on the answer -- `short-5`,
     where one returns 1 and another 4 -- that charges the smaller one as
     incomplete, which is only right if the larger answer is the correct one.
+
+    The rate runs from the start of execution to the last result, not to the end
+    of the run: the time an engine spends after its last result, traversing until
+    it can tell nothing more will come, is termination, not delivery, and took up
+    most of the run on templates like `short-5`. A run that failed before its
+    answer was complete never reached a last result of that answer, so it is
+    measured to where it stopped instead. Where no run of the instance completed,
+    the answer size is only the most anyone got, so no failed run counts as
+    having delivered all of it.
     """
     completed = df[~df["failed"]].groupby(["template", "instance"])["delivered"].max()
     anything = df.groupby(["template", "instance"])["delivered"].max()
     answer = completed.reindex(anything.index).fillna(anything)
-    sizes = df.set_index(["template", "instance"]).index.map(answer).to_numpy(dtype=float)
-    seconds = df["time_ms"].to_numpy(dtype=float) / 1000
+    keys = df.set_index(["template", "instance"]).index
+    sizes = keys.map(answer).to_numpy(dtype=float)
+    size_known = keys.isin(completed.index)
+    delivered = df["delivered"].to_numpy(dtype=float)
+    last_ms = pd.to_numeric(df["last_result_ms"], errors="coerce").to_numpy(dtype=float)
+    answered = (~df["failed"].to_numpy() | (size_known & (delivered >= sizes))) & (delivered > 0)
+    seconds = np.where(answered, last_ms, df["time_ms"].to_numpy(dtype=float)) / 1000
     with np.errstate(divide="ignore", invalid="ignore"):
         # No known answer (nothing ever delivered) leaves the rate undefined
-        rate = np.where(sizes > 0, df["delivered"].to_numpy(dtype=float) / sizes / seconds, np.nan)
+        rate = np.where(sizes > 0, delivered / sizes / seconds, np.nan)
     return df.assign(answer_rate_per_s=rate)
 
 

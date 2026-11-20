@@ -1,0 +1,16 @@
+template,covered::adaptive,mean::adaptive,pooled_median::adaptive,instance_range::adaptive,geo_sd::adaptive,covered::adaptive-derived-resources,mean::adaptive-derived-resources,pooled_median::adaptive-derived-resources,instance_range::adaptive-derived-resources,geo_sd::adaptive-derived-resources,covered::adaptive-derived-resources-pattern-only,mean::adaptive-derived-resources-pattern-only,pooled_median::adaptive-derived-resources-pattern-only,instance_range::adaptive-derived-resources-pattern-only,geo_sd::adaptive-derived-resources-pattern-only,vs_adaptive::adaptive-derived-resources,vs_adaptive::adaptive-derived-resources-pattern-only
+interactive-discover-1,5/5,2.0154,2.079,1.438-2.421,,5/5,3.8184,3.8095,3.731-3.908,,5/5,2.4641,2.4535,1.229-3.531,,1.89,1.22
+interactive-discover-2,5/5,1.4969,1.487,1.331-1.636,,5/5,3.6137,3.5778,3.515-3.718,,5/5,2.1483,1.9195,1.231-3.236,,2.41,1.44
+interactive-discover-3,5/5,0.0092,0.0097,0.005942-0.01169,,5/5,0.0093,0.0097,0.006039-0.0122,,5/5,0.0092,0.0097,0.005857-0.01201,,1.01,1.0
+interactive-discover-4,5/5,0.8069,0.8416,0.6201-1.001,,5/5,1.2863,1.5433,0.7616-1.65,,5/5,1.5032,1.7212,0.8326-2.034,,1.59,1.86
+interactive-discover-5,5/5,1.4645,1.4556,1.421-1.53,,5/5,2.4053,2.3366,2.113-2.714,,5/5,3.1235,3.0462,2.611-3.699,,1.64,2.13
+interactive-discover-6,5/5,0.9909,0.9492,0.8606-1.136,,5/5,1.6737,1.9417,1.078-2.139,,5/5,2.0414,2.3647,1.279-2.625,,1.69,2.06
+interactive-discover-7,5/5,0.6301,0.5851,0.3784-1.022,,5/5,1.3173,1.5984,0.492-1.998,,5/5,1.6807,1.9608,0.5509-2.729,,2.09,2.67
+interactive-discover-8,5/5,1.7098,1.992,0.2401-2.193,,5/5,2.8644,3.3503,1.391-3.65,,5/5,2.4195,3.306,0.5962-3.563,,1.68,1.42
+interactive-short-1,5/5,3.1412,3.096,3.067-3.231,,5/5,2.8982,2.8531,2.707-3.078,,5/5,2.9446,2.9455,2.747-3.177,,0.92,0.94
+interactive-short-2,-,,,-,,-,,,-,,-,,,-,,,
+interactive-short-3,5/5,0.0033,0.0033,0.003332-0.003333,,5/5,0.0033,0.0033,0.003332-0.003332,,5/5,0.0033,0.0033,0.003331-0.003332,,1.0,1.0
+interactive-short-4,5/5,7.7281,8.0,5.333-9.133,,5/5,6.5203,6.7117,4.855-8.144,,5/5,6.2749,6.689,4.675-7.293,,0.84,0.81
+interactive-short-5,5/5,2.7076,2.7972,2.297-3.054,,5/5,2.6322,2.6919,2.075-2.937,,5/5,2.583,2.6212,2.051-2.908,,0.97,0.95
+interactive-short-6,2/5,0.0033,0.0033,0.003332-0.003332,,2/5,0.0033,0.0033,0.003327-0.003332,,2/5,0.0033,0.0033,0.003332-0.003332,,1.0,1.0
+interactive-short-7,-,,,-,,-,,,-,,-,,,-,,,

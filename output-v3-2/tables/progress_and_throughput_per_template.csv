@@ -1,0 +1,16 @@
+template,median_delivered::default,from_failed_runs::default,median_throughput_per_s::default,median_delivered::adaptive,from_failed_runs::adaptive,median_throughput_per_s::adaptive,median_delivered::adaptive-derived-resources,from_failed_runs::adaptive-derived-resources,median_throughput_per_s::adaptive-derived-resources,median_delivered::adaptive-derived-resources-composite-only,from_failed_runs::adaptive-derived-resources-composite-only,median_throughput_per_s::adaptive-derived-resources-composite-only,median_delivered::adaptive-derived-resources-individual-requests,from_failed_runs::adaptive-derived-resources-individual-requests,median_throughput_per_s::adaptive-derived-resources-individual-requests,median_delivered::adaptive-derived-resources-no-chain,from_failed_runs::adaptive-derived-resources-no-chain,median_throughput_per_s::adaptive-derived-resources-no-chain,median_delivered::adaptive-derived-resources-pattern-only,from_failed_runs::adaptive-derived-resources-pattern-only,median_throughput_per_s::adaptive-derived-resources-pattern-only
+interactive-discover-1,6.0,-,2.85,6.0,-,3.81,6.0,-,6.21,6.0,-,3.08,6.0,-,4.49,6.0,-,6.28,6.0,-,7.65
+interactive-discover-2,66.0,-,36.47,66.0,-,49.96,66.0,-,74.19,66.0,-,38.2,66.0,-,55.86,66.0,-,73.54,66.0,-,93.75
+interactive-discover-3,68.0,0 over 1 runs,0.61,68.0,-,0.6,68.0,-,0.67,68.0,-,0.61,68.0,-,0.65,68.0,-,0.67,68.0,-,0.65
+interactive-discover-4,3.0,-,2.24,3.0,-,3.02,3.0,-,4.71,3.0,-,2.26,3.0,-,3.75,3.0,-,4.68,3.0,-,5.98
+interactive-discover-5,4.0,-,3.63,4.0,-,4.41,4.0,-,6.72,4.0,-,3.12,4.0,-,5.68,4.0,-,6.54,4.0,-,8.17
+interactive-discover-6,2.0,200 over 7 runs,0.71,2.0,-,0.62,2.0,-,1.64,2.0,-,0.52,2.0,-,1.24,2.0,-,1.61,2.0,-,1.99
+interactive-discover-7,1.0,15 over 12 runs,0.42,1.0,24 over 12 runs,0.55,1.0,-,0.93,1.0,24 over 12 runs,0.38,1.0,-,0.75,1.0,-,0.93,1.0,-,1.07
+interactive-discover-8,10.0,-,0.49,10.0,-,19.4,10.0,-,25.34,10.0,-,9.7,10.0,-,16.1,10.0,-,24.33,10.0,-,24.29
+interactive-short-1,1.0,-,0.83,1.0,-,0.91,1.0,-,1.32,1.0,-,0.62,1.0,-,0.76,1.0,-,1.32,1.0,-,1.84
+interactive-short-2,0.0,0 over 30 runs,,0.0,0 over 30 runs,,0.0,0 over 30 runs,,0.0,0 over 30 runs,,0.0,0 over 30 runs,,0.0,0 over 30 runs,,0.0,0 over 30 runs,
+interactive-short-3,0.0,0 over 30 runs,,7.0,198 over 30 runs,,7.0,183 over 30 runs,,7.0,186 over 30 runs,,7.0,188 over 30 runs,,14.0,382 over 30 runs,,14.0,384 over 30 runs,
+interactive-short-4,1.0,-,4.23,1.0,-,4.15,1.0,-,3.85,1.0,-,3.84,1.0,-,3.95,1.0,-,3.89,1.0,-,3.97
+interactive-short-5,1.0,-,0.18,1.0,-,0.17,1.0,-,1.27,1.0,-,0.13,1.0,-,0.83,1.0,-,1.28,1.0,-,1.49
+interactive-short-6,0.0,12 over 30 runs,,0.0,12 over 30 runs,,0.0,12 over 30 runs,,0.0,12 over 30 runs,,0.0,12 over 30 runs,,0.0,12 over 30 runs,,0.0,12 over 30 runs,
+interactive-short-7,0.0,0 over 30 runs,,0.0,0 over 30 runs,,0.0,0 over 30 runs,,0.0,0 over 30 runs,,0.0,0 over 30 runs,,0.0,0 over 30 runs,,0.0,0 over 30 runs,

@@ -15,7 +15,7 @@ from analysis.correctness import per_query_agreement, per_template_agreement, to
 from analysis.heterogeneity import (instance_ratio_spread, variance_decomposition,
                                     winner_by_instance)
 from analysis.aggregate import per_instance
-from analysis.loading import discover_datasets, engine_order, load_runs
+from analysis.loading import engine_order, load_runs
 from analysis.performance import METRICS, error_summary, per_template_performance
 from analysis.plots import ARRIVAL_SCALES, plot_all
 
@@ -30,6 +30,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data-dir", type=Path, default=DATA_DIR,
                         help="directory of query-results-raw-<engine>.json files")
+    parser.add_argument("--engines", nargs="+", default=None, metavar="ENGINE",
+                        help="compare only these engines (default: every raw file "
+                             "in --data-dir)")
     parser.add_argument("--out-dir", type=Path, default=None,
                         help="directory to write tables, figures and the report into "
                              "(default: alongside --data-dir, with a leading 'data' "
@@ -45,9 +48,9 @@ def main() -> None:
     out_dir = args.out_dir if args.out_dir is not None else output_dir_for(data_dir)
     table_dir, figure_dir = out_dir / "tables", out_dir / "figures"
 
-    df = load_runs(data_dir)
+    df = load_runs(data_dir, args.engines)
     engines = engine_order(df)
-    print(f"loaded {len(df)} runs from {len(discover_datasets(data_dir))} engines: {', '.join(engines)}")
+    print(f"loaded {len(df)} runs from {len(engines)} engines: {', '.join(engines)}")
 
     per_query = per_query_agreement(df)
     per_template = per_template_agreement(per_query, df)

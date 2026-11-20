@@ -1,0 +1,12 @@
+template,instances_used,to_first_result::adaptive,to_last_result::adaptive,streaming_span::adaptive,after_last_result::adaptive,to_first_result::adaptive-derived-resources,to_last_result::adaptive-derived-resources,streaming_span::adaptive-derived-resources,after_last_result::adaptive-derived-resources,to_first_result::adaptive-derived-resources-pattern-only,to_last_result::adaptive-derived-resources-pattern-only,streaming_span::adaptive-derived-resources-pattern-only,after_last_result::adaptive-derived-resources-pattern-only,startup_delta_ms::adaptive-derived-resources,to_last_ratio::adaptive-derived-resources,startup_delta_ms::adaptive-derived-resources-pattern-only,to_last_ratio::adaptive-derived-resources-pattern-only
+interactive-discover-1,5,446.5,503.3,56.8,653.0,261.3,262.0,0.7,475.4,334.3,441.2,106.9,214.3,-185.2,0.52,-112.1,0.88
+interactive-discover-2,5,449.2,669.6,220.4,398.5,257.2,276.8,19.6,470.6,322.0,506.7,184.7,153.3,-191.9,0.41,-127.2,0.76
+interactive-discover-3,5,111822.7,111833.3,10.6,1.1,110433.4,110436.1,2.7,1.2,111743.7,111747.4,3.7,1.2,-1389.3,0.99,-79.0,1.0
+interactive-discover-4,5,1260.8,1260.8,0.0,1.6,821.5,821.8,0.3,1.0,716.2,716.6,0.4,1.5,-439.3,0.65,-544.6,0.57
+interactive-discover-5,5,515.4,683.3,167.9,470.4,385.1,418.3,33.2,291.1,289.5,323.9,34.4,288.9,-130.3,0.61,-225.9,0.47
+interactive-discover-6,5,946.0,1016.2,70.2,6496.3,552.9,621.8,68.9,4749.5,440.0,514.3,74.2,4407.3,-393.0,0.61,-505.9,0.51
+interactive-discover-7,3,1300.6,1300.6,0.0,352.7,546.0,546.0,0.0,190.2,415.6,415.6,0.0,182.5,-754.6,0.42,-885.0,0.32
+interactive-discover-8,5,435.3,742.4,307.1,5.0,369.5,370.9,1.4,1.4,501.3,513.8,12.5,3.4,-65.8,0.5,66.0,0.69
+interactive-short-1,5,318.5,318.5,0.0,833.5,345.8,345.8,0.0,386.7,340.1,340.1,0.0,259.6,27.2,1.09,21.5,1.07
+interactive-short-4,5,132.4,132.4,0.0,169.1,156.6,156.6,0.0,176.5,162.0,162.0,0.0,173.0,24.2,1.18,29.5,1.22
+interactive-short-5,5,371.9,371.9,0.0,6721.1,382.8,382.8,0.0,487.0,389.9,389.9,0.0,411.2,10.9,1.03,18.0,1.05

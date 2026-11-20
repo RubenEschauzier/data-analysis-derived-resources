@@ -1,0 +1,16 @@
+template,par2::default,par2::adaptive,par2::adaptive-derived-resources,par2::adaptive-derived-resources-composite-only,par2::adaptive-derived-resources-individual-requests,par2::adaptive-derived-resources-no-chain,par2::adaptive-derived-resources-pattern-only,vs_default::adaptive,vs_default::adaptive-derived-resources,vs_default::adaptive-derived-resources-composite-only,vs_default::adaptive-derived-resources-individual-requests,vs_default::adaptive-derived-resources-no-chain,vs_default::adaptive-derived-resources-pattern-only
+interactive-discover-1,1813.8,1284.4,849.3,1390.7,1291.5,949.2,764.2,0.71,0.47,0.77,0.71,0.52,0.42
+interactive-discover-2,1740.6,1090.7,773.0,1217.9,1016.7,907.4,699.7,0.63,0.44,0.7,0.58,0.52,0.4
+interactive-discover-3,130150.8,116345.7,113999.5,118696.7,125859.7,123651.1,115015.4,0.89,0.88,0.91,0.97,0.95,0.88
+interactive-discover-4,1677.2,1320.8,884.4,1382.1,1055.3,929.8,810.6,0.79,0.53,0.82,0.63,0.55,0.48
+interactive-discover-5,1257.3,1157.3,735.4,1224.7,886.6,734.0,633.7,0.92,0.58,0.97,0.71,0.58,0.5
+interactive-discover-6,165231.5,43038.0,45560.0,46953.5,46781.7,47432.6,45321.4,0.26,0.28,0.28,0.28,0.29,0.27
+interactive-discover-7,242057.1,241027.9,66279.2,241216.5,107908.4,68882.8,59443.1,1.0,0.27,1.0,0.45,0.28,0.25
+interactive-discover-8,18906.9,1277.2,398.4,925.1,626.9,420.8,713.8,0.07,0.02,0.05,0.03,0.02,0.04
+interactive-short-1,1275.1,1189.8,750.4,1266.0,1192.9,757.6,627.0,0.93,0.59,0.99,0.94,0.59,0.49
+interactive-short-2,600000.0,600000.0,600000.0,600000.0,600000.0,600000.0,600000.0,1.0,1.0,1.0,1.0,1.0,1.0
+interactive-short-3,600000.0,600000.0,600000.0,600000.0,600000.0,600000.0,600000.0,1.0,1.0,1.0,1.0,1.0,1.0
+interactive-short-4,392.1,360.4,386.3,396.0,897.4,382.7,387.4,0.92,0.99,1.01,2.29,0.98,0.99
+interactive-short-5,13626.2,14332.7,955.8,16061.6,1326.3,959.8,983.8,1.05,0.07,1.18,0.1,0.07,0.07
+interactive-short-6,600000.0,600000.0,600000.0,600000.0,600000.0,600000.0,600000.0,1.0,1.0,1.0,1.0,1.0,1.0
+interactive-short-7,600000.0,600000.0,600000.0,600000.0,600000.0,600000.0,600000.0,1.0,1.0,1.0,1.0,1.0,1.0

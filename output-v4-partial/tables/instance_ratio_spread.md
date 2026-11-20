@@ -1,0 +1,24 @@
+| template               | engine                                  |   instances |   ratio_geomean |   ratio_min |   ratio_max | direction_agrees   | straddles_break_even   |
+|:-----------------------|:----------------------------------------|------------:|----------------:|------------:|------------:|:-------------------|:-----------------------|
+| interactive-discover-1 | adaptive-derived-resources              |           5 |            0.72 |        0.59 |        0.89 | 5/5                | no                     |
+| interactive-discover-1 | adaptive-derived-resources-pattern-only |           5 |            0.61 |        0.44 |        0.85 | 5/5                | no                     |
+| interactive-discover-2 | adaptive-derived-resources              |           5 |            0.99 |        0.87 |        1.09 | 2/5                | yes                    |
+| interactive-discover-2 | adaptive-derived-resources-pattern-only |           5 |            0.63 |        0.46 |        0.84 | 5/5                | no                     |
+| interactive-discover-3 | adaptive-derived-resources              |           5 |            1    |        0.98 |        1.03 | 4/5                | yes                    |
+| interactive-discover-3 | adaptive-derived-resources-pattern-only |           5 |            1.06 |        1.04 |        1.06 | 5/5                | no                     |
+| interactive-discover-4 | adaptive-derived-resources              |           5 |            0.67 |        0.54 |        0.82 | 5/5                | no                     |
+| interactive-discover-4 | adaptive-derived-resources-pattern-only |           5 |            0.57 |        0.43 |        0.77 | 5/5                | no                     |
+| interactive-discover-5 | adaptive-derived-resources              |           5 |            0.61 |        0.49 |        0.78 | 5/5                | no                     |
+| interactive-discover-5 | adaptive-derived-resources-pattern-only |           5 |            0.53 |        0.42 |        0.69 | 5/5                | no                     |
+| interactive-discover-6 | adaptive-derived-resources              |           5 |            0.74 |        0.5  |        1.03 | 3/5                | yes                    |
+| interactive-discover-6 | adaptive-derived-resources-pattern-only |           5 |            0.67 |        0.4  |        1.04 | 3/5                | yes                    |
+| interactive-discover-7 | adaptive-derived-resources              |           3 |            0.44 |        0.38 |        0.48 | 3/3                | no                     |
+| interactive-discover-7 | adaptive-derived-resources-pattern-only |           3 |            0.35 |        0.28 |        0.41 | 3/3                | no                     |
+| interactive-discover-8 | adaptive-derived-resources              |           5 |            0.5  |        0.06 |        1.54 | 4/5                | yes                    |
+| interactive-discover-8 | adaptive-derived-resources-pattern-only |           5 |            0.61 |        0.06 |        2.84 | 3/5                | yes                    |
+| interactive-short-1    | adaptive-derived-resources              |           5 |            1.07 |        0.98 |        1.13 | 4/5                | yes                    |
+| interactive-short-1    | adaptive-derived-resources-pattern-only |           5 |            0.53 |        0.43 |        0.68 | 5/5                | no                     |
+| interactive-short-4    | adaptive-derived-resources              |           5 |            1.07 |        1.02 |        1.12 | 5/5                | no                     |
+| interactive-short-4    | adaptive-derived-resources-pattern-only |           5 |            1.06 |        1.01 |        1.11 | 5/5                | no                     |
+| interactive-short-5    | adaptive-derived-resources              |           5 |            0.13 |        0.04 |        0.56 | 5/5                | no                     |
+| interactive-short-5    | adaptive-derived-resources-pattern-only |           5 |            0.11 |        0.03 |        0.43 | 5/5                | no                     |

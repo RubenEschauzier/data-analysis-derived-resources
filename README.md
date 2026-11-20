@@ -26,6 +26,8 @@ output/
   figures/                         one PDF per figure, light theme, grouped as
     per-template/                    per-metric bars, facets and single layouts
     per-instance/                    every instance drawn separately
+      arrival/                         result-arrival curves per template, one
+                                       panel per instance (log + linear)
     completion/                      how runs ended, result-arrival curves
     heterogeneity/                   variance share, speedup scatter
   report.md                        all tables + figure paths in one document

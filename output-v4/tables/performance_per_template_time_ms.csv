@@ -1,0 +1,16 @@
+template,covered::default,geomean::default,pooled_median::default,instance_range::default,geo_sd::default,covered::adaptive,geomean::adaptive,pooled_median::adaptive,instance_range::adaptive,geo_sd::adaptive,covered::adaptive-derived-resources,geomean::adaptive-derived-resources,pooled_median::adaptive-derived-resources,instance_range::adaptive-derived-resources,geo_sd::adaptive-derived-resources,vs_default::adaptive,vs_default::adaptive-derived-resources
+interactive-discover-1,5/5,1632.2,1603.0,1161-2437,1.43,5/5,1126.0,1144.5,938-1318,1.14,5/5,814.0,745.5,659-1176,1.31,0.69,0.5
+interactive-discover-2,5/5,1659.2,1615.0,1073-2569,1.48,5/5,1058.7,1065.5,888-1272,1.15,5/5,1043.7,939.0,877-1350,1.22,0.64,0.63
+interactive-discover-3,5/5,113320.1,105314.5,85106-170336,1.29,5/5,109315.5,100760.5,83234-162404,1.28,5/5,108953.0,101291.0,81595-166776,1.31,0.96,0.96
+interactive-discover-4,5/5,1761.8,1758.0,1106-2602,1.48,5/5,1239.0,1187.0,1023-1548,1.21,5/5,824.1,658.5,593-1276,1.46,0.7,0.47
+interactive-discover-5,5/5,1290.1,1246.5,1090-1585,1.19,5/5,1137.9,1155.5,957-1308,1.13,5/5,694.1,597.5,542-1016,1.33,0.88,0.54
+interactive-discover-6,4/5,6198.3,2757.0,1436-139521,8.17,5/5,7462.9,1382.5,1156-106988,11.36,5/5,5495.1,1083.0,608-110304,15.53,1.2,0.89
+interactive-discover-7,3/5,2652.3,2276.5,1404-5840,2.06,3/5,1732.5,1855.0,1351-2258,1.29,5/5,6559.9,1086.0,638-164104,19.03,0.65,2.47
+interactive-discover-8,5/5,15093.9,18081.5,6337-35302,2.16,5/5,757.6,499.0,446-4573,2.74,5/5,380.8,316.0,288-689,1.47,0.05,0.03
+interactive-short-1,5/5,1171.0,1172.5,970-1406,1.16,5/5,1169.1,1168.5,1002-1373,1.15,5/5,1252.6,1142.5,1106-1552,1.18,1.0,1.07
+interactive-short-2,-,,,-,,-,,,-,,-,,,-,,,
+interactive-short-3,-,,,-,,-,,,-,,-,,,-,,,
+interactive-short-4,5/5,311.2,235.0,212-584,1.6,5/5,310.2,235.5,213-584,1.61,5/5,330.4,257.0,235-596,1.56,1.0,1.06
+interactive-short-5,5/5,7570.7,6035.0,1002-52398,4.26,5/5,6816.8,6071.5,958-45923,4.12,5/5,867.2,756.0,540-1634,1.53,0.9,0.11
+interactive-short-6,-,,,-,,-,,,-,,-,,,-,,,
+interactive-short-7,-,,,-,,-,,,-,,-,,,-,,,

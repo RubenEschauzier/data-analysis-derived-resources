@@ -23,10 +23,11 @@ DEFAULT_CONFIG_NAMES = [
     "adaptive-derived-resources",
     "default",
     "adaptive",
+    "adaptive-derived-resources-composite-only",
     "adaptive-derived-resources-no-chain",
+    "adaptive-derived-resources-individual-requests",
     "adaptive-derived-resources-pattern-only",
 ]
-
 
 def find_combinations(source: Path) -> dict[int, Path]:
     """Map combination index -> its raw results file."""

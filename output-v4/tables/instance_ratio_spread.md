@@ -1,0 +1,24 @@
+| template               | engine                     |   instances |   ratio_geomean |   ratio_min |   ratio_max | direction_agrees   | straddles_break_even   |
+|:-----------------------|:---------------------------|------------:|----------------:|------------:|------------:|:-------------------|:-----------------------|
+| interactive-discover-1 | adaptive                   |           5 |            0.69 |        0.52 |        0.93 | 5/5                | no                     |
+| interactive-discover-1 | adaptive-derived-resources |           5 |            0.5  |        0.43 |        0.57 | 5/5                | no                     |
+| interactive-discover-2 | adaptive                   |           5 |            0.64 |        0.48 |        0.91 | 5/5                | no                     |
+| interactive-discover-2 | adaptive-derived-resources |           5 |            0.63 |        0.52 |        0.82 | 5/5                | no                     |
+| interactive-discover-3 | adaptive                   |           5 |            0.96 |        0.95 |        0.98 | 5/5                | no                     |
+| interactive-discover-3 | adaptive-derived-resources |           5 |            0.96 |        0.95 |        0.98 | 5/5                | no                     |
+| interactive-discover-4 | adaptive                   |           5 |            0.7  |        0.58 |        0.96 | 5/5                | no                     |
+| interactive-discover-4 | adaptive-derived-resources |           5 |            0.47 |        0.37 |        0.54 | 5/5                | no                     |
+| interactive-discover-5 | adaptive                   |           5 |            0.88 |        0.83 |        0.97 | 5/5                | no                     |
+| interactive-discover-5 | adaptive-derived-resources |           5 |            0.54 |        0.46 |        0.64 | 5/5                | no                     |
+| interactive-discover-6 | adaptive                   |           4 |            0.62 |        0.44 |        0.8  | 4/4                | no                     |
+| interactive-discover-6 | adaptive-derived-resources |           4 |            0.42 |        0.27 |        0.79 | 4/4                | no                     |
+| interactive-discover-7 | adaptive                   |           3 |            0.65 |        0.39 |        0.96 | 3/3                | no                     |
+| interactive-discover-7 | adaptive-derived-resources |           3 |            0.29 |        0.19 |        0.45 | 3/3                | no                     |
+| interactive-discover-8 | adaptive                   |           5 |            0.05 |        0.01 |        0.17 | 5/5                | no                     |
+| interactive-discover-8 | adaptive-derived-resources |           5 |            0.03 |        0.01 |        0.1  | 5/5                | no                     |
+| interactive-short-1    | adaptive                   |           5 |            1    |        0.97 |        1.03 | 3/5                | yes                    |
+| interactive-short-1    | adaptive-derived-resources |           5 |            1.07 |        0.96 |        1.15 | 4/5                | yes                    |
+| interactive-short-4    | adaptive                   |           5 |            1    |        0.97 |        1.02 | 3/5                | yes                    |
+| interactive-short-4    | adaptive-derived-resources |           5 |            1.06 |        1.02 |        1.11 | 5/5                | no                     |
+| interactive-short-5    | adaptive                   |           5 |            0.9  |        0.88 |        0.96 | 5/5                | no                     |
+| interactive-short-5    | adaptive-derived-resources |           5 |            0.11 |        0.03 |        0.54 | 5/5                | no                     |
