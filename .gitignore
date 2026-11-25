@@ -2,3 +2,8 @@
 __pycache__/
 *.pyc
 output/
+
+# Raw run data and generated analysis output: kept locally, too large for the repo
+data-fedshop-v1/
+data-instance0-*/
+output-fedshop-v1/
