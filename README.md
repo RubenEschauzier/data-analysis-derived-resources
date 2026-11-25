@@ -41,6 +41,30 @@ python3 -m venv .venv
 .venv/bin/python main.py
 ```
 
+### From a jbr output tree
+
+jbr writes `combination_<N>/query-results-raw.json`; `extract` renames those to
+`query-results-raw-<config>.json`. The combination index only means something
+together with the experiment's factor order, so pick the preset that matches it
+(or pass `--names` in combination order):
+
+| preset | configurations, in combination order |
+| --- | --- |
+| `solidbench` (default) | adaptive-derived-resources, default, adaptive, …-composite-only, …-no-chain, …-individual-requests, …-pattern-only |
+| `solidbench-reduced` | adaptive, adaptive-derived-resources, adaptive-derived-resources-pattern-only, default |
+| `fedshop` | derived, derived-pattern-only, adaptive-only, derived-no-prio, default |
+| `fedshop-tracking` | derived, derived-pattern-only |
+
+```bash
+PYTHONPATH=src .venv/bin/python -m analysis.extract \
+  --source <jbr-output-dir> --dest data-<name>/extracted --preset fedshop
+.venv/bin/python main.py --data-dir data-<name>/extracted --out-dir output-<name>-analysis
+```
+
+`--timeout-ms` (default 180000) is the engine query timeout: it separates a
+timeout from a crash and sets the PAR-2 penalty. The data-v3..v5 runs used 300s,
+so re-run those with `--timeout-ms 300000`.
+
 ## Adding an engine
 
 Drop another `data/query-results-raw-<engine>.json` in place and re-run. Engines

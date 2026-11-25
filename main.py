@@ -8,7 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
-from analysis.config import DATA_DIR, output_dir_for
+from analysis.config import DATA_DIR, TIMEOUT_MS, output_dir_for
 from analysis.completion import (completion_summary, matched_timing, par_scores,
                                  progress_summary, startup_decomposition)
 from analysis.correctness import per_query_agreement, per_template_agreement, to_markdown
@@ -42,15 +42,21 @@ def main() -> None:
                         help="time axis of the result-arrival curves: one shared log "
                              "axis, a linear axis zoomed per panel onto where results "
                              "arrive, or both as separate figures (default: both)")
+    parser.add_argument("--timeout-ms", type=int, default=TIMEOUT_MS,
+                        help="engine query timeout in milliseconds, used to classify "
+                             "timeouts and as the PAR-2 budget (default: %(default)s; "
+                             "the data-v3..v5 runs used 300000)")
     args = parser.parse_args()
 
     data_dir = args.data_dir
+    timeout_ms = args.timeout_ms
     out_dir = args.out_dir if args.out_dir is not None else output_dir_for(data_dir)
     table_dir, figure_dir = out_dir / "tables", out_dir / "figures"
 
-    df = load_runs(data_dir, args.engines)
+    df = load_runs(data_dir, args.engines, timeout_ms=timeout_ms)
     engines = engine_order(df)
-    print(f"loaded {len(df)} runs from {len(engines)} engines: {', '.join(engines)}")
+    print(f"loaded {len(df)} runs from {len(engines)} engines: {', '.join(engines)} "
+          f"(timeout {timeout_ms / 1000:g}s)")
 
     per_query = per_query_agreement(df)
     per_template = per_template_agreement(per_query, df)
@@ -65,7 +71,7 @@ def main() -> None:
 
     completion = completion_summary(df)
     matched = matched_timing(df)
-    par = par_scores(df)
+    par = par_scores(df, timeout_ms=timeout_ms)
     progress = progress_summary(df)
     _write(completion, "completion_per_template", table_dir)
     _write(matched, "timing_matched_per_template", table_dir)
@@ -168,7 +174,8 @@ def main() -> None:
         "",
         "## PAR-2 (failures penalised, not dropped)",
         "",
-        "A run that never finished counts as 2x the 300s budget. An engine cannot "
+        f"A run that never finished counts as 2x the {timeout_ms / 1000:g}s budget. "
+        "An engine cannot "
         "look fast here by failing more often. Read alongside completion.",
         "",
         to_markdown(par),

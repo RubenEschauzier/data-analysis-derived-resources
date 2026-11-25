@@ -44,9 +44,10 @@ def completion_summary(df: pd.DataFrame) -> pd.DataFrame:
     return _ordered(pd.DataFrame(rows), df)
 
 
-def par_scores(df: pd.DataFrame, factor: int = 2) -> pd.DataFrame:
+def par_scores(df: pd.DataFrame, factor: int = 2,
+               timeout_ms: int = TIMEOUT_MS) -> pd.DataFrame:
     """Penalised average runtime: a run that never finished counts as
-    `factor * TIMEOUT_MS` instead of being dropped.
+    `factor * timeout_ms` instead of being dropped.
 
     PAR-2 is the usual convention in solver competitions. It keeps failures in
     the comparison, so an engine cannot look fast by failing more often. The
@@ -54,7 +55,7 @@ def par_scores(df: pd.DataFrame, factor: int = 2) -> pd.DataFrame:
     completion rate, never on its own.
     """
     engines = engine_order(df)
-    penalty = factor * TIMEOUT_MS
+    penalty = factor * timeout_ms
     scored = df.copy()
     scored["par"] = scored["time_ms"].where(~scored["failed"], penalty)
 

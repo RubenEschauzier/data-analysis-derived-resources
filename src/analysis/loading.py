@@ -57,11 +57,29 @@ def _template_parts(name: str) -> tuple[str, int]:
     return m.group("family"), int(m.group("index"))
 
 
-def load_runs(data_dir: Path = DATA_DIR, engines: list[str] | None = None) -> pd.DataFrame:
+def _is_failure(error) -> bool:
+    """Whether a raw `error` value marks the run as failed.
+
+    Older harness output omits `error` on success and sets a message on failure;
+    the FedShop harness writes a boolean on every record. Only a missing value or
+    an explicit `False` means the run succeeded.
+    """
+    if error is None or error is False:
+        return False
+    if isinstance(error, float) and pd.isna(error):
+        return False
+    return True
+
+
+def load_runs(data_dir: Path = DATA_DIR, engines: list[str] | None = None,
+              timeout_ms: int = TIMEOUT_MS) -> pd.DataFrame:
     """One row per individual query execution across every engine.
 
-    Replication index is inferred from the order records appear in the file: the
-    harness writes the full template x instance sweep once per replication.
+    Replication index is the order an instance's records appear in the file:
+    each (template, instance) is written once per replication, whether the
+    harness sweeps the whole workload per replication or repeats each query in
+    place. `timeout_ms` is the engine's query timeout, used to tell a timeout
+    from a crash.
     """
     frames = []
     for engine, path in discover_datasets(data_dir, engines).items():
@@ -75,8 +93,8 @@ def load_runs(data_dir: Path = DATA_DIR, engines: list[str] | None = None) -> pd
 
     df = df.rename(columns={"name": "template", "id": "instance"})
     df["error"] = df.get("error", pd.Series([None] * len(df))).astype("object")
-    df["failed"] = df["error"].notna()
-    df["timed_out"] = df["time"] >= TIMEOUT_MS * TIMEOUT_TOLERANCE
+    df["failed"] = df["error"].map(_is_failure)
+    df["timed_out"] = df["time"] >= timeout_ms * TIMEOUT_TOLERANCE
     df["failure_kind"] = [_failure_kind(f, t, ms)
                           for f, t, ms in zip(df["failed"], df["timed_out"], df["time"])]
     df["empty_result"] = df["hash"].eq(EMPTY_HASH)

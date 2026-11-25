@@ -37,9 +37,11 @@ TABLE_DIR = OUTPUT_DIR / "tables"
 RAW_GLOB = "query-results-raw-*.json"
 RAW_PREFIX = "query-results-raw-"
 
-# Runs that hit the harness timeout report a wall time around this value.
-TIMEOUT_MS = 300_000
-# Observed timeouts overshoot slightly (up to ~303.5s), so match with tolerance.
+# Default engine query timeout. Runs that hit it report a wall time around this
+# value. Current experiments (SolidBench and FedShop) use 180s; the data-v3..v5
+# runs used 300s, so pass `--timeout-ms 300000` to main.py when re-analysing those.
+TIMEOUT_MS = 180_000
+# Observed timeouts overshoot slightly (~1%), so match with tolerance.
 TIMEOUT_TOLERANCE = 0.99
 # A failure this fast never executed the query -- the engine rejected it.
 FAST_FAIL_MS = 1_000

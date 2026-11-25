@@ -18,16 +18,46 @@ from pathlib import Path
 COMBINATION_DIR = re.compile(r"^combination_(?P<index>\d+)$")
 RAW_NAME = "query-results-raw.json"
 
-#: Combination index -> configuration name, in the order the factors are declared.
-DEFAULT_CONFIG_NAMES = [
-    "adaptive-derived-resources",
-    "default",
-    "adaptive",
-    "adaptive-derived-resources-composite-only",
-    "adaptive-derived-resources-no-chain",
-    "adaptive-derived-resources-individual-requests",
-    "adaptive-derived-resources-pattern-only",
-]
+#: Named experiment layouts. Each maps combination index -> configuration name, so
+#: the order MUST be the order the factor values are declared in that experiment's
+#: jbr-combinations.json. A wrong order mislabels every engine without any error;
+#: a wrong length is caught by `extract`.
+PRESETS: dict[str, list[str]] = {
+    # SolidBench, full set of configurations.
+    "solidbench": [
+        "adaptive-derived-resources",
+        "default",
+        "adaptive",
+        "adaptive-derived-resources-composite-only",
+        "adaptive-derived-resources-no-chain",
+        "adaptive-derived-resources-individual-requests",
+        "adaptive-derived-resources-pattern-only",
+    ],
+    # SolidBench, reduced set of configurations.
+    "solidbench-reduced": [
+        "adaptive",
+        "adaptive-derived-resources",
+        "adaptive-derived-resources-pattern-only",
+        "default",
+    ],
+    # FedShop discovery (benchmark-experiments/fedshop-discovery-full-experiment,
+    # factor `alg`).
+    "fedshop": [
+        "derived",
+        "derived-pattern-only",
+        "adaptive-only",
+        "derived-no-prio",
+        "default",
+    ],
+    # FedShop discovery with the proxy's request log
+    # (benchmark-experiments/jbr-experiment-fedshop-discovery-enable-proxy-tracking).
+    "fedshop-tracking": [
+        "derived",
+        "derived-pattern-only",
+    ],
+}
+DEFAULT_PRESET = "solidbench"
+DEFAULT_CONFIG_NAMES = PRESETS[DEFAULT_PRESET]
 
 def find_combinations(source: Path) -> dict[int, Path]:
     """Map combination index -> its raw results file."""
@@ -93,11 +123,19 @@ def main() -> None:
                         help="directory holding the combination_* output directories")
     parser.add_argument("--dest", type=Path, required=True,
                         help="directory to write query-results-raw-<config>.json into")
-    parser.add_argument("--names", nargs="*", default=None,
-                        help="configuration names, in combination index order")
+    naming = parser.add_mutually_exclusive_group()
+    naming.add_argument("--preset", choices=sorted(PRESETS), default=DEFAULT_PRESET,
+                        help="named set of configuration names, in combination index "
+                             "order (default: %(default)s)")
+    naming.add_argument("--names", nargs="+", default=None,
+                        help="explicit configuration names, in combination index order "
+                             "(overrides --preset)")
     args = parser.parse_args()
 
-    written = extract(args.source, args.dest, args.names)
+    names = args.names or PRESETS[args.preset]
+    print(f"naming combinations with "
+          f"{'--names' if args.names else f'preset {args.preset!r}'}: {', '.join(names)}")
+    written = extract(args.source, args.dest, names)
     combinations = find_combinations(args.source)
     for index, (name, path) in enumerate(written.items()):
         records = json.loads(path.read_text())
